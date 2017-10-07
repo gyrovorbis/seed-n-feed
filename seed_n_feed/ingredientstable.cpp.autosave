@@ -1,0 +1,7 @@
+#include "ingredientstable.h"
+
+
+NutritionalValue::NutritionalValue()
+{
+
+}
