@@ -76,19 +76,28 @@ void RationsTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
 
         QComboBox* comboBox = static_cast<QComboBox*>(editor);
         model->setData(index, comboBox->currentText());
-
-     //   float costPerDay = ingredientsTable->index(comboBox->currentIndex, IngredientsTable::COL))
-
-      //  model->setData(index.model()->index(index.row(), RationTable::COL_COST_PER_DAY),);
-      //  model->setData(index.model()->index(index.row(), RationTable::COL_DM), );
         break;
     }
     default:
-        return QStyledItemDelegate::setEditorData(editor, index);
+        QStyledItemDelegate::setModelData(editor, model, index);
     };
+    _updateReadOnlyColumns(model, index);
 }
 
-void RationsTableDelegate::_updateReadOnlyColumns(int row) {
+void RationsTableDelegate::_updateReadOnlyColumns(QAbstractItemModel* model, const QModelIndex& index) {
+    RationTable* rationTable = static_cast<RationTable*>(model);
+    Ration ration = rationTable->rationFromRow(index.row());
+    int row = ingredientsTable->rowFromName(ration.ingredient);
+
+    if(row != -1) {
+        Ingredient ingredient = ingredientsTable->ingredientFromRow(row);
+        float costPerDay    = (ration.asFed/ration.weight)/ration.costPerUnit;
+        float dm            = (ration.asFed/ingredient.dm);
+
+        rationTable->setData(rationTable->index(index.row(), RationTable::COL_COST_PER_DAY), costPerDay);
+        rationTable->setData(rationTable->index(index.row(), RationTable::COL_DM), dm);
+
+    }
 
 
 }

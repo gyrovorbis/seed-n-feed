@@ -23,7 +23,7 @@ public:
     virtual void        setEditorData(QWidget *editor, const QModelIndex &index) const override;
     virtual void        setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
 
-    static void         _updateReadOnlyColumns(int row);
+    static void         _updateReadOnlyColumns(QAbstractItemModel* model, const QModelIndex& index);
 };
 
 

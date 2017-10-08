@@ -15,6 +15,18 @@
      "vita real)"))
 #endif
 
+
+struct Ingredient {
+    char    name[INGREDIENT_NAME_SIZE];
+    float   dm;
+    float   nem;
+    float   neg;
+    float   protein;
+    float   ca;
+    float   p;
+    float   vita;
+};
+
 class IngredientsTable : public QSqlTableModel {
 public:
 
@@ -31,6 +43,9 @@ public:
 
                             IngredientsTable(QObject* parent, QSqlDatabase database);
     virtual Qt::ItemFlags   flags(const QModelIndex &index) const override;
+
+    Ingredient              ingredientFromRow(int row);
+    int                     rowFromName(QString name);
 };
 
 #endif // NUTRITIONALVALUE_H
