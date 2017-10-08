@@ -10,6 +10,7 @@
 #include "utilities.h"
 #include "ui_mainwindow.h"
 #include "ingredients_table.h"
+#include "animal_nutrition_req_table.h"
 #include "ration_table.h"
 //#include "qtdir/src/sql/drivers/sqlite/qsql_sqlite.cpp"
 #include "ingredients_table_delegate.h"
@@ -76,6 +77,20 @@ MainWindow::MainWindow(QWidget *parent) :
   //  ui->ingredientsTableView->setItemDelegate(new IngredientsTableDelegate);
     //ui->ingredientsTableView->setItemDelegateForColumn(1, new IngredientsTableDelegate);
 
+    animalNutritionReqTable = new AnimalNutritionReqTable(this, db);
+    animalNutritionReqTable->setTable("AnimalNutritionReq");
+    animalNutritionReqTable->select();
+    animalNutritionReqTable->setHeaderData(0, Qt::Horizontal, "Animal Type + Status");
+    animalNutritionReqTable->setHeaderData(1, Qt::Horizontal, "DM, lbs");
+    animalNutritionReqTable->setHeaderData(2, Qt::Horizontal, "NEm");
+    animalNutritionReqTable->setHeaderData(3, Qt::Horizontal, "NEg");
+    animalNutritionReqTable->setHeaderData(4, Qt::Horizontal, "Protein, lbs");
+    animalNutritionReqTable->setHeaderData(5, Qt::Horizontal, "Ca, lbs");
+    animalNutritionReqTable->setHeaderData(6, Qt::Horizontal, "P, lbs");
+    animalNutritionReqTable->setHeaderData(7, Qt::Horizontal, "Vit A, IU");
+    animalNutritionReqTable->setEditStrategy(QSqlTableModel::OnFieldChange);
+    ui->animalNutritionReqTableView->setModel(animalNutritionReqTable);
+
     rationTable = new RationTable(this, db);
     rationTable->setTable("Rations");
     rationTable->setEditStrategy(QSqlTableModel::OnFieldChange);
@@ -93,6 +108,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->addIngredientButton, SIGNAL(clicked(bool)), this , SLOT(onAddIngredientClick(bool)));
     connect(ui->deleteIngredientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteIngredientClick(bool)));
 
+    connect(ui->addAnimalNutritionReqButton, SIGNAL(clicked(bool)), this , SLOT(onAddAnimalNutritionReqClick(bool)));
+    connect(ui->deleteAnimalNutritionReqButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteAnimalNutritionReqClick(bool)));
 }
 
 MainWindow::~MainWindow(void)
@@ -179,18 +196,34 @@ bool MainWindow::_dbInit(void) {
         QSqlQuery query;
         if(!query.exec("create table Ingredients"
                   "(name varchar(50) primary key, "
-                  "dm integer, "
-                  "nem integer,"
-                  "neg integer,"
-                   "protein integer,"
-                   "ca integer,"
-                   "p integer,"
-                       "vita integer)"))
+                  "dm real, "
+                  "nem real,"
+                  "neg real,"
+                   "protein real,"
+                   "ca real,"
+                   "p real,"
+                       "vita real)"))
         {
-            qCritical() << "Create table query failed: " << query.lastError();
+            qCritical() << "Create ingredients table query failed: " << query.lastError();
             success = false;
         } else {
-            dbgPrintf("Create table query succeeded!");
+            dbgPrintf("Create ingredients table query succeeded!");
+        }
+
+        if(!query.exec("create table AnimalNutritionReq"
+                  "(type varchar(50) primary key, "
+                  "dm real, "
+                  "nem real,"
+                  "neg real,"
+                   "protein real,"
+                   "ca real,"
+                   "p real,"
+                       "vita real)"))
+        {
+            qCritical() << "Create animalNutritionReq table query failed: " << query.lastError();
+            success = false;
+        } else {
+            dbgPrintf("Create animalNutritionReq table query succeeded!");
         }
 
     }
@@ -214,6 +247,13 @@ void MainWindow::onAddIngredientClick(bool) {
     //ingredientsTable->setData(0, "hi", Qt::EditRole)
 }
 
+void MainWindow::onAddAnimalNutritionReqClick(bool) {
+    animalNutritionReqTable->insertRows(animalNutritionReqTable->rowCount(), 1);
+    if(animalNutritionReqTable->submitAll()) {
+        animalNutritionReqTable->database().commit();
+    }
+}
+
 void MainWindow::onDeleteIngredientClick(bool) {
     // check which row(s) is/are selected (if any)
     QItemSelectionModel *select = ui->ingredientsTableView->selectionModel();
@@ -228,7 +268,26 @@ void MainWindow::onDeleteIngredientClick(bool) {
         ingredientsTable->select();
 
     } else {
-        QMessageBox::critical(this, "Delete Failed", "Please select at least one entire row for deletion.");
+        QMessageBox::critical(this, "Delete from Ingredients Table Failed", "Please select at least one entire row for deletion.");
+
+    }
+}
+
+void MainWindow::onDeleteAnimalNutritionReqClick(bool) {
+    // check which row(s) is/are selected (if any)
+    QItemSelectionModel *select = ui->animalNutritionReqTableView->selectionModel();
+
+    QModelIndexList selectedRows = select->selectedRows();
+    if(selectedRows.size()) {
+
+        for(auto it: selectedRows) animalNutritionReqTable->removeRows(it.row(), 1);
+        if(animalNutritionReqTable->submitAll()) {
+            animalNutritionReqTable->database().commit();
+        }
+        animalNutritionReqTable->select();
+
+    } else {
+        QMessageBox::critical(this, "Delete from AnimalNutritionReqTable Failed", "Please select at least one entire row for deletion.");
 
     }
 }

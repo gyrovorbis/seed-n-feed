@@ -16,6 +16,7 @@ namespace Ui {
 
 class IngredientsTable;
 class RationTable;
+class AnimalNutritionReqTable;
 
 class MainWindow : public QMainWindow
 {
@@ -32,12 +33,13 @@ public:
     virtual             ~MainWindow(void);
 
 private:
-    Ui::MainWindow*     ui;
-    QSqlDatabase        db;
-    IngredientsTable*   ingredientsTable;
-    RationTable*        rationTable;
-    QDir                userDir;
-    static FILE*        dbgLogFile;
+    Ui::MainWindow*          ui;
+    QSqlDatabase             db;
+    IngredientsTable*        ingredientsTable;
+    AnimalNutritionReqTable* animalNutritionReqTable;
+    RationTable*             rationTable;
+    QDir                     userDir;
+    static FILE*             dbgLogFile;
 
     virtual void        closeEvent(QCloseEvent *event) override;
 
@@ -51,6 +53,8 @@ private:
 private slots:
     void                onAddIngredientClick(bool);
     void                onDeleteIngredientClick(bool);
+    void                onAddAnimalNutritionReqClick(bool);
+    void                onDeleteAnimalNutritionReqClick(bool);
 };
 
 #endif // MAINWINDOW_H
