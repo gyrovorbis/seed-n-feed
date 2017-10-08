@@ -11,6 +11,7 @@
 #include "ui_mainwindow.h"
 #include "ingredients_table.h"
 #include "ration_table.h"
+#include "rations_table_delegate.h"
 //#include "qtdir/src/sql/drivers/sqlite/qsql_sqlite.cpp"
 #include "ingredients_table_delegate.h"
 
@@ -61,38 +62,23 @@ MainWindow::MainWindow(QWidget *parent) :
     ingredientsTable->setTable("Ingredients");
     ingredientsTable->select();
     //ingredientsTable->insertColumns(0, 8);
-    ingredientsTable->setHeaderData(0, Qt::Horizontal, "Ingredient");
-    ingredientsTable->setHeaderData(1, Qt::Horizontal, "DM, %");
-    ingredientsTable->setHeaderData(2, Qt::Horizontal, "NEm");
-    ingredientsTable->setHeaderData(3, Qt::Horizontal, "NEg");
-    ingredientsTable->setHeaderData(4, Qt::Horizontal, "Protein, lbs");
-    ingredientsTable->setHeaderData(5, Qt::Horizontal, "Ca, lbs");
-    ingredientsTable->setHeaderData(6, Qt::Horizontal, "P, lbs");
-    ingredientsTable->setHeaderData(7, Qt::Horizontal, "Vit A, IU");
-    ingredientsTable->setEditStrategy(QSqlTableModel::OnFieldChange);
 
     //ingredientsTable->insertRows(ingredientsTable->rowCount(), 4);
     ui->ingredientsTableView->setModel(ingredientsTable);
   //  ui->ingredientsTableView->setItemDelegate(new IngredientsTableDelegate);
     //ui->ingredientsTableView->setItemDelegateForColumn(1, new IngredientsTableDelegate);
 
-    rationTable = new RationTable(this, db);
-    rationTable->setTable("Rations");
-    rationTable->setEditStrategy(QSqlTableModel::OnFieldChange);
-    rationTable->select();
-    rationTable->insertColumns(rationTable->columnCount(), 6);
-    rationTable->setHeaderData(0, Qt::Horizontal, "Ingredient");
-    rationTable->setHeaderData(1, Qt::Horizontal, "As fed, lbs");
-    rationTable->setHeaderData(2, Qt::Horizontal, "Cost, $/Unit");
-    rationTable->setHeaderData(3, Qt::Horizontal, "Weight, lbs/Unit");
-    rationTable->setHeaderData(4, Qt::Horizontal, "Cost/day");
-    rationTable->setHeaderData(5, Qt::Horizontal, "DM, lbs");
+    rationTable = new RationTable(this);
+    RationsTableDelegate::setIngredientsTable(ingredientsTable);
 
     ui->rationCalculatorTableView->setModel(rationTable);
+    ui->rationCalculatorTableView->setItemDelegate(new RationsTableDelegate);
 
     connect(ui->addIngredientButton, SIGNAL(clicked(bool)), this , SLOT(onAddIngredientClick(bool)));
     connect(ui->deleteIngredientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteIngredientClick(bool)));
 
+    connect(ui->addRationButton, SIGNAL(clicked(bool)), this, SLOT(onAddRationClick(bool)));
+    connect(ui->deleteRationButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteRationClick(bool)));
 }
 
 MainWindow::~MainWindow(void)
@@ -192,7 +178,6 @@ bool MainWindow::_dbInit(void) {
         } else {
             dbgPrintf("Create table query succeeded!");
         }
-
     }
 
     return success;
@@ -231,6 +216,24 @@ void MainWindow::onDeleteIngredientClick(bool) {
         QMessageBox::critical(this, "Delete Failed", "Please select at least one entire row for deletion.");
 
     }
+}
+
+void MainWindow::onAddRationClick(bool) {
+    rationTable->insertRow(rationTable->rowCount());
+}
+
+void MainWindow::onDeleteRationClick(bool) {
+    // check which row(s) is/are selected (if any)
+    QItemSelectionModel* select = ui->rationCalculatorTableView->selectionModel();
+
+    QModelIndexList selectedRows = select->selectedRows();
+    if(selectedRows.size()) {
+        for(auto it: selectedRows) rationTable->removeRows(it.row(), 1);
+    } else {
+        QMessageBox::critical(this, "Delete Failed", "Please select at least one entire row for deletion.");
+
+    }
+
 }
 
 

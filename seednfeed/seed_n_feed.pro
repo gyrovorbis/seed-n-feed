@@ -29,7 +29,8 @@ SOURCES += \
     animalprojection.cpp \
     ingredients_table.cpp \
     ration_table.cpp \
-    ingredients_table_delegate.cpp
+    ingredients_table_delegate.cpp \
+    rations_table_delegate.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -37,7 +38,8 @@ HEADERS += \
     ingredients_table.h \
     ration_table.h \
     ingredients_table_delegate.h \
-    utilities.h
+    utilities.h \
+    rations_table_delegate.h
 
 FORMS += \
         mainwindow.ui

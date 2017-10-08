@@ -24,7 +24,7 @@
        <attribute name="title">
         <string>Ration Calculator</string>
        </attribute>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>40</x>
@@ -177,7 +177,7 @@
           </layout>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_3">
+          <widget class="QPushButton" name="addRationButton">
            <property name="maximumSize">
             <size>
              <width>50</width>
@@ -190,7 +190,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_9">
+          <widget class="QPushButton" name="deleteRationButton">
            <property name="maximumSize">
             <size>
              <width>50</width>
@@ -207,10 +207,6 @@
          </item>
         </layout>
        </widget>
-       <zorder>gridLayoutWidget</zorder>
-       <zorder>pushButton_3</zorder>
-       <zorder>rationCalculatorTableView</zorder>
-       <zorder>rationCalculatorTableView</zorder>
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">

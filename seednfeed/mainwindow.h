@@ -51,6 +51,8 @@ private:
 private slots:
     void                onAddIngredientClick(bool);
     void                onDeleteIngredientClick(bool);
+    void                onAddRationClick(bool);
+    void                onDeleteRationClick(bool);
 };
 
 #endif // MAINWINDOW_H

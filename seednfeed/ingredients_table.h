@@ -4,20 +4,22 @@
 #include <QSqlTableModel>
 
 
-class IngredientsTable : public QSqlTableModel
-{
-//    QString name = "";
-//    float dryMatterPercentage = 0.0;
-//    float netEnergyForMaintenance = 0.0;
-//    float netEnergyForGain = 0.0;
-//    float proteinLbs = 0.0;
-//    float calciumLbs = 0.0;
-//    float phosphorusLbs = 0.0;
-//    float vitaminA_IU = 0.0;
-
+class IngredientsTable : public QSqlTableModel {
 public:
-    IngredientsTable(QObject* parent, QSqlDatabase database);
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+    enum COLUMNS {
+        COL_NAME,
+        COL_DM,
+        COL_NEM,
+        COL_NEG,
+        COL_PROTEIN,
+        COL_CA,
+        COL_P,
+        COL_VITA
+    };
+
+                            IngredientsTable(QObject* parent, QSqlDatabase database);
+    virtual Qt::ItemFlags   flags(const QModelIndex &index) const override;
 };
 
 #endif // NUTRITIONALVALUE_H
