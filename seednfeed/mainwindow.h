@@ -53,8 +53,13 @@ private:
 private slots:
     void                onAddIngredientClick(bool);
     void                onDeleteIngredientClick(bool);
+
+    void                onAddRationClick(bool);
+    void                onDeleteRationClick(bool);
+
     void                onAddAnimalNutritionReqClick(bool);
     void                onDeleteAnimalNutritionReqClick(bool);
+
 };
 
 #endif // MAINWINDOW_H

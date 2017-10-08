@@ -30,6 +30,7 @@ SOURCES += \
     ingredients_table.cpp \
     ration_table.cpp \
     ingredients_table_delegate.cpp \
+    rations_table_delegate.cpp \
     animal_nutrition_req_table.cpp
 
 HEADERS += \
@@ -39,6 +40,7 @@ HEADERS += \
     ration_table.h \
     ingredients_table_delegate.h \
     utilities.h \
+    rations_table_delegate.h \
     animal_nutrition_req_table.h
 
 FORMS += \

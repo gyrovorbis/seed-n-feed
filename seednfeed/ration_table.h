@@ -1,24 +1,24 @@
 #ifndef RATION_TABLE_H
 #define RATION_TABLE_H
 #include <QString>
-#include "ingredients_table.h"
+#include <QStandardItemModel>
 
-class RationTable : public QSqlTableModel
-{
-//    float amountPerFeedingIbs = 0.0;
-//    float costPerUnit = 0.0;
-//    float weightPerUnitIbs = 0.0;
-//    float costPerDay = 0.0;
-//    float dryMatterIbs = 0.0;
-//    //Ingredient ingredient;
 
-//    float calculateCostPerDay();
-//    float calculateDryMatterIbs();
+
+class RationTable : public QStandardItemModel {
 
 public:
-    RationTable(QObject* parent, QSqlDatabase database);
+    enum COLUMNS {
+        COL_INGREDIENT,
+        COL_AS_FED,
+        COL_COST_PER_UNIT,
+        COL_WEIGHT,
+        COL_COST_PER_DAY,
+        COL_DM
+    };
 
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
+                            RationTable(QObject* parent=nullptr);
+    virtual Qt::ItemFlags   flags(const QModelIndex &index) const override;
 };
 
 #endif // RATION_TABLE_H
