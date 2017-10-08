@@ -151,7 +151,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="addRationButton">
             <property name="maximumSize">
              <size>
               <width>50</width>
@@ -164,7 +164,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_9">
+           <widget class="QPushButton" name="deleteRationButton">
             <property name="maximumSize">
              <size>
               <width>50</width>

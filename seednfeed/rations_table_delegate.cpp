@@ -72,11 +72,17 @@ void RationsTableDelegate::setEditorData(QWidget *editor, const QModelIndex &ind
 }
 void RationsTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
     switch(index.column()) {
-    case RationTable::COL_INGREDIENT:
-        model->setData(index, static_cast<QComboBox*>(editor)->currentText());
-        //model->setData(index.model()->index(index.row(), RationTable::COL_COST_PER_DAY), );
-     //   model->setData(index.model()->index(index.row(), RationTable::COL_DM), );
+    case RationTable::COL_INGREDIENT: {
+
+        QComboBox* comboBox = static_cast<QComboBox*>(editor);
+        model->setData(index, comboBox->currentText());
+
+       // float costPerDay = ingredientsTable->index(comboBox->currentIndex, IngredientsTable::COL_))
+
+      //  model->setData(index.model()->index(index.row(), RationTable::COL_COST_PER_DAY),);
+      //  model->setData(index.model()->index(index.row(), RationTable::COL_DM), );
         break;
+    }
     default:
         return QStyledItemDelegate::setEditorData(editor, index);
     };
