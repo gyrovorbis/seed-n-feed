@@ -61,6 +61,8 @@ private slots:
     void                onAddAnimalNutritionReqClick(bool);
     void                onDeleteAnimalNutritionReqClick(bool);
 
+    void                onCalculateButtonClick(bool);
+
 };
 
 #endif // MAINWINDOW_H

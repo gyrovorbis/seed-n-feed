@@ -98,6 +98,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->addAnimalNutritionReqButton, SIGNAL(clicked(bool)), this , SLOT(onAddAnimalNutritionReqClick(bool)));
     connect(ui->deleteAnimalNutritionReqButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteAnimalNutritionReqClick(bool)));
 
+    connect(ui->calculatePushButton, SIGNAL(clicked(bool)), this, SLOT(onCalculateButtonClick(bool)));
+
     ui->rationCalculatorTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->nutritionalTotalsTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->calculationResultTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -300,6 +302,44 @@ void MainWindow::onDeleteRationClick(bool) {
 
     }
 
+}
+
+void MainWindow::onCalculateButtonClick(bool) {
+    int rows = rationTable->rowCount();
+    float totalNem = 0, totalNeg = 0, totalProtein = 0, totalCa = 0, totalPhosphorus = 0, totalVitA = 0;
+
+    for (int i=0; i<rows; i++) {
+        Ration ration = rationTable->rationFromRow(i);
+        int ingredientRow = ingredientsTable->rowFromName(ration.ingredient);
+
+        if (ingredientRow != -1) {
+            Ingredient ingredient = ingredientsTable->ingredientFromRow(ingredientRow);
+            totalNem += ingredient.nem;
+            totalNeg += ingredient.neg;
+            totalProtein += ingredient.protein;
+            totalCa += ingredient.ca;
+            totalPhosphorus += ingredient.p;
+            totalVitA += ingredient.vita;
+        }
+    }
+
+    char totalNemString[200], totalNegString[200], totalProteinString[200], totalCaString[200], totalPhosphorusString[200], totalVitAString[200];
+
+    sprintf(totalNemString, "%f", totalNem);
+    sprintf(totalNegString, "%f", totalNeg);
+    sprintf(totalProteinString, "%f", totalProtein);
+    sprintf(totalCaString, "%f", totalCa);
+    sprintf(totalPhosphorusString, "%f", totalPhosphorus);
+    sprintf(totalVitAString, "%f", totalVitA);
+
+    ui->nutritionalTotalsTableWidget->setItem(0, 0, new QTableWidgetItem(QString(totalNemString)));
+    ui->nutritionalTotalsTableWidget->setItem(0, 1, new QTableWidgetItem(QString(totalNegString)));
+    ui->nutritionalTotalsTableWidget->setItem(0, 2, new QTableWidgetItem(QString(totalProteinString)));
+    ui->nutritionalTotalsTableWidget->setItem(0, 3, new QTableWidgetItem(QString(totalCaString)));
+    ui->nutritionalTotalsTableWidget->setItem(0, 4, new QTableWidgetItem(QString(totalPhosphorusString)));
+    ui->nutritionalTotalsTableWidget->setItem(0, 5, new QTableWidgetItem(QString(totalVitAString)));
+
+   // ui->nutritionalTotalsTableWidget->model()->layoutChanged();
 }
 
 void MainWindow::_printBuildInfo(void) {
