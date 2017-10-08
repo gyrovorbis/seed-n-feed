@@ -30,11 +30,8 @@ SOURCES += \
     ingredients_table.cpp \
     ration_table.cpp \
     ingredients_table_delegate.cpp \
-<<<<<<< HEAD
-    rations_table_delegate.cpp
-=======
+    rations_table_delegate.cpp \
     animal_nutrition_req_table.cpp
->>>>>>> 3c9d7f2cee57f7427f35fb6f2e3ce1cbe404ce16
 
 HEADERS += \
         mainwindow.h \
@@ -43,11 +40,8 @@ HEADERS += \
     ration_table.h \
     ingredients_table_delegate.h \
     utilities.h \
-<<<<<<< HEAD
-    rations_table_delegate.h
-=======
+    rations_table_delegate.h \
     animal_nutrition_req_table.h
->>>>>>> 3c9d7f2cee57f7427f35fb6f2e3ce1cbe404ce16
 
 FORMS += \
         mainwindow.ui
