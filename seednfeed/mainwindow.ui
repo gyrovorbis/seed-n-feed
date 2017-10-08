@@ -61,6 +61,9 @@
                 <height>16777215</height>
                </size>
               </property>
+              <property name="maximum">
+               <double>2000.000000000000000</double>
+              </property>
              </widget>
             </item>
             <item row="4" column="2">
@@ -90,6 +93,9 @@
                 <width>100</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="maximum">
+               <double>2000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -142,6 +148,9 @@
                 <width>100</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="maximum">
+               <double>2000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -247,22 +256,22 @@
            <widget class="QTableWidget" name="calculationResultTableWidget">
             <row>
              <property name="text">
-              <string>Cost per Day</string>
+              <string>Total Cost per Day, $</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Cost per lbs gained</string>
+              <string>Cost per lbs Gained, $</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Total cost per head</string>
+              <string>Total Cost per Head, $</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Average Daily Gain</string>
+              <string>Average Daily Gain (lbs)</string>
              </property>
             </row>
             <row>
@@ -291,27 +300,27 @@
            <widget class="QTableWidget" name="nutritionalTotalsTableWidget">
             <row>
              <property name="text">
-              <string>NEm</string>
+              <string>NEm (Mcal/day)</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>NEg</string>
+              <string>NEg (Mcal/day)</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Protein, lbs</string>
+              <string>Protein (g/day)</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Ca, lbs</string>
+              <string>Calcium (g/day)</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>P, lbs</string>
+              <string>Phosphorus, (g/day)</string>
              </property>
             </row>
             <row>
@@ -321,10 +330,18 @@
             </row>
             <column>
              <property name="text">
-              <string>Nutritional Totals of Ration:</string>
+              <string>Nutritional Totals from Ration:</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Nutritional Requirements Met?</string>
              </property>
             </column>
             <item row="0" column="0">
+             <property name="text">
+              <string/>
+             </property>
              <property name="flags">
               <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsUserCheckable</set>
              </property>
