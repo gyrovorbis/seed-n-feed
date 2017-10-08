@@ -57,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     _debugInit();
+    _printBuildInfo();
     _dbInit();
 
     ingredientsTable = new IngredientsTable(this, db);
@@ -181,7 +182,7 @@ bool MainWindow::_dbInit(void) {
     if(createNewDb) {
         QSqlQuery query;
         if(!query.exec("create table Ingredients"
-                  "(name varchar(50) primary key, "
+                  "(name varchar(" STRINGIFY_MACRO(INGREDIENT_NAME_SIZE) ") primary key, "
                   "dm real, "
                   "nem real,"
                   "neg real,"
@@ -293,6 +294,31 @@ void MainWindow::onDeleteRationClick(bool) {
 
     }
 
+}
+
+void MainWindow::_printBuildInfo(void) {
+    char strBuff[40];
+    const char* platString =
+  #if defined(__APPLE__)
+    "MacOS";
+  #elif defined(_WIN32)
+    "Windows";
+  #else
+    "Linux";
+  #endif
+
+    dbgPrintf("Initializing Seed N Feed [%s] v%s", platString, VERSION_STRING);
+#ifdef GYRO_LOCAL_BUILD
+    dbgPrintf("THIS IS AN UNOFFICIAL OR LOCAL BUILD!");
+#else
+    dbgPrintf("THIS IS AN OFFICIAL BUILD!");
+#endif
+    dbgPrintf("%-20s: %40s", "Git branch name",  STRINGIFY_MACRO(GYRO_BUILD_BRANCH));
+    dbgPrintf("%-20s: %40s", "Git commit ID",    STRINGIFY_MACRO(GYRO_BUILD_COMMIT));
+    dbgPrintf("%-20s: %40s", "Build number",     STRINGIFY_MACRO(GYRO_BUILD_NUMBER));
+    dbgPrintf("%-20s: %40s", "Build node",       STRINGIFY_MACRO(GYRO_BUILD_NODE));
+    sprintf(strBuff, "%s %s", __DATE__, __TIME__);
+    dbgPrintf("%-20s: %40s", "Build timestamp", strBuff);
 }
 
 

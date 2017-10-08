@@ -3,7 +3,11 @@
 #include <QString>
 #include <QStandardItemModel>
 
+#define RATION_ITEM_TYPE_SIZE   50
 
+class RationsItem {
+
+};
 
 class RationTable : public QStandardItemModel {
 

@@ -77,7 +77,7 @@ void RationsTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
         QComboBox* comboBox = static_cast<QComboBox*>(editor);
         model->setData(index, comboBox->currentText());
 
-       // float costPerDay = ingredientsTable->index(comboBox->currentIndex, IngredientsTable::COL_))
+     //   float costPerDay = ingredientsTable->index(comboBox->currentIndex, IngredientsTable::COL))
 
       //  model->setData(index.model()->index(index.row(), RationTable::COL_COST_PER_DAY),);
       //  model->setData(index.model()->index(index.row(), RationTable::COL_DM), );
@@ -86,4 +86,9 @@ void RationsTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     default:
         return QStyledItemDelegate::setEditorData(editor, index);
     };
+}
+
+void RationsTableDelegate::_updateReadOnlyColumns(int row) {
+
+
 }

@@ -3,6 +3,17 @@
 #include <QString>
 #include <QSqlTableModel>
 
+#define INGREDIENT_NAME_SIZE    50
+#if 0
+"(name varchar(50) primary key, "
+"dm real, "
+"nem real,"
+"neg real,"
+ "protein real,"
+ "ca real,"
+ "p real,"
+     "vita real)"))
+#endif
 
 class IngredientsTable : public QSqlTableModel {
 public:

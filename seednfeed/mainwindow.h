@@ -45,6 +45,7 @@ private:
 
     bool                _debugInit(void);
     bool                _dbInit(void);
+    void                _printBuildInfo(void);
 
     static void         logQ(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static void         dbgPrintf(const char* str, ...);
