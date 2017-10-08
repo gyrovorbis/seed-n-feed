@@ -332,14 +332,19 @@ void MainWindow::onCalculateButtonClick(bool) {
     sprintf(totalPhosphorusString, "%f", totalPhosphorus);
     sprintf(totalVitAString, "%f", totalVitA);
 
-    ui->nutritionalTotalsTableWidget->setItem(0, 0, new QTableWidgetItem(QString(totalNemString)));
-    ui->nutritionalTotalsTableWidget->setItem(0, 1, new QTableWidgetItem(QString(totalNegString)));
-    ui->nutritionalTotalsTableWidget->setItem(0, 2, new QTableWidgetItem(QString(totalProteinString)));
-    ui->nutritionalTotalsTableWidget->setItem(0, 3, new QTableWidgetItem(QString(totalCaString)));
-    ui->nutritionalTotalsTableWidget->setItem(0, 4, new QTableWidgetItem(QString(totalPhosphorusString)));
-    ui->nutritionalTotalsTableWidget->setItem(0, 5, new QTableWidgetItem(QString(totalVitAString)));
 
-   // ui->nutritionalTotalsTableWidget->model()->layoutChanged();
+    auto createItem = [](QString label) {
+        QTableWidgetItem* item = new QTableWidgetItem(label);
+        item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+        return item;
+    };
+
+    ui->nutritionalTotalsTableWidget->setItem(0, 0, createItem(totalNemString));
+    ui->nutritionalTotalsTableWidget->setItem(0, 1, createItem(totalNegString));
+    ui->nutritionalTotalsTableWidget->setItem(0, 2, createItem(totalProteinString));
+    ui->nutritionalTotalsTableWidget->setItem(0, 3, createItem(totalCaString));
+    ui->nutritionalTotalsTableWidget->setItem(0, 4, createItem(totalPhosphorusString));
+    ui->nutritionalTotalsTableWidget->setItem(0, 5, createItem(totalVitAString));
 }
 
 void MainWindow::_printBuildInfo(void) {
