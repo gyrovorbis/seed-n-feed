@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_1">
        <attribute name="title">
@@ -29,138 +29,99 @@
          <rect>
           <x>40</x>
           <y>40</y>
-          <width>621</width>
-          <height>451</height>
+          <width>624</width>
+          <height>601</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
           <layout class="QGridLayout" name="gridLayout">
+           <item row="9" column="2">
+            <widget class="QSpinBox" name="expectedEndorsementLengthSpinBox">
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>Start Date:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="2">
+            <widget class="QDoubleSpinBox" name="finishedWeightDoubleSpinBox">
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
            <item row="4" column="2">
-            <widget class="QTextEdit" name="expectedSellWeightLbsTextEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
+            <widget class="QSpinBox" name="totalHeadSpinBox">
              <property name="maximumSize">
               <size>
                <width>100</width>
-               <height>20</height>
+               <height>16777215</height>
               </size>
              </property>
             </widget>
            </item>
-           <item row="2" column="2">
-            <widget class="QTextEdit" name="currentBodyWeightLbsTextEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
+           <item row="0" column="2">
+            <widget class="QLineEdit" name="animalTypeLineEdit">
              <property name="maximumSize">
               <size>
-               <width>100</width>
-               <height>20</height>
+               <width>200</width>
+               <height>16777215</height>
               </size>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="7" column="2">
+            <widget class="QDoubleSpinBox" name="expectedSellWeightSpinBox">
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
             <widget class="QLabel" name="label">
              <property name="text">
               <string>Current Body Weight, Ibs:</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
+           <item row="7" column="1">
             <widget class="QLabel" name="label_4">
              <property name="text">
-              <string>Expected Sell Weights, Ibs:</string>
+              <string>Expected Sell Weight, Ibs:</string>
              </property>
             </widget>
            </item>
-           <item row="6" column="2">
-            <widget class="QTextEdit" name="ExpectedEndorsementLengthTextEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>20</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QTextEdit" name="totalHeadTextEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>20</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QTextEdit" name="startDateTextEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>20</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="2">
-            <widget class="QTextEdit" name="slaughterWeightLbsTextEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>20</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
+           <item row="8" column="1">
             <widget class="QLabel" name="label_6">
              <property name="text">
               <string>Finished (Slaughter) Weight, lbs:</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
+           <item row="4" column="1">
             <widget class="QLabel" name="label_3">
              <property name="text">
               <string>Total Head:  (Optional)</string>
              </property>
             </widget>
            </item>
-           <item row="6" column="1">
+           <item row="9" column="1">
             <widget class="QLabel" name="label_5">
              <property name="text">
               <string>Expected Endorsement Length, Wks: (Optional)</string>
@@ -170,7 +131,27 @@
            <item row="0" column="1">
             <widget class="QLabel" name="label_2">
              <property name="text">
-              <string>Start Date:</string>
+              <string>Animal Type:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
+            <widget class="QDoubleSpinBox" name="currentBodyWeightSpinBox">
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QDateEdit" name="startDateEdit">
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>16777215</height>
+              </size>
              </property>
             </widget>
            </item>
@@ -247,6 +228,45 @@
          </layout>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Animal Nutrition Req.</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QPushButton" name="addAnimalNutritionReqButton">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="deleteAnimalNutritionReqButton">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableView" name="animalNutritionReqTableView"/>
+        </item>
+       </layout>
+       <zorder>deleteAnimalNutritionReqButton</zorder>
+       <zorder>animalNutritionReqTableView</zorder>
+       <zorder>addAnimalNutritionReqButton</zorder>
       </widget>
      </widget>
     </item>
