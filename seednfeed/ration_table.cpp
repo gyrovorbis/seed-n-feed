@@ -5,3 +5,7 @@ RationTable::RationTable(QObject* parent, QSqlDatabase db):
 {
 
 }
+
+Qt::ItemFlags RationTable::flags(const QModelIndex &/*index*/) const {
+    return (Qt::ItemIsEnabled|Qt::ItemIsSelectable|Qt::ItemIsEditable);
+}

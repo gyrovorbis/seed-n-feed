@@ -17,6 +17,8 @@ class RationTable : public QSqlTableModel
 
 public:
     RationTable(QObject* parent, QSqlDatabase database);
+
+    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
 };
 
 #endif // RATION_TABLE_H

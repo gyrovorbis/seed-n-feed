@@ -6,3 +6,7 @@ IngredientsTable::IngredientsTable(QObject* parent, QSqlDatabase db):
 {
 
 }
+
+Qt::ItemFlags IngredientsTable::flags(const QModelIndex &index) const {
+    return (Qt::ItemIsEnabled|Qt::ItemIsSelectable|Qt::ItemIsEditable);
+}

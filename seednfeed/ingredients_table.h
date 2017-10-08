@@ -17,6 +17,7 @@ class IngredientsTable : public QSqlTableModel
 
 public:
     IngredientsTable(QObject* parent, QSqlDatabase database);
+    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
 };
 
 #endif // NUTRITIONALVALUE_H

@@ -28,13 +28,16 @@ SOURCES += \
         mainwindow.cpp \
     animalprojection.cpp \
     ingredients_table.cpp \
-    ration_table.cpp
+    ration_table.cpp \
+    ingredients_table_delegate.cpp
 
 HEADERS += \
         mainwindow.h \
     animalprojection.h \
     ingredients_table.h \
-    ration_table.h
+    ration_table.h \
+    ingredients_table_delegate.h \
+    utilities.h
 
 FORMS += \
         mainwindow.ui
