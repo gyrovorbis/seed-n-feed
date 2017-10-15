@@ -64,12 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ingredientsTable = new IngredientsTable(this, db);
     ingredientsTable->setTable("Ingredients");
     ingredientsTable->select();
-    //ingredientsTable->insertColumns(0, 8);
-
-    //ingredientsTable->insertRows(ingredientsTable->rowCount(), 4);
     ui->ingredientsTableView->setModel(ingredientsTable);
-  //  ui->ingredientsTableView->setItemDelegate(new IngredientsTableDelegate);
-    //ui->ingredientsTableView->setItemDelegateForColumn(1, new IngredientsTableDelegate);
 
     rationTable = new RationTable(this);
     RationsTableDelegate::setIngredientsTable(ingredientsTable);
@@ -237,8 +232,6 @@ void MainWindow::onAddIngredientClick(bool) {
     if(ingredientsTable->submitAll()) {
         ingredientsTable->database().commit();
     }
-    //ingredientsTable->select();
-    //ingredientsTable->setData(0, "hi", Qt::EditRole)
 }
 
 void MainWindow::onAddAnimalNutritionReqClick(bool) {
@@ -401,11 +394,6 @@ void MainWindow::onCalculateButtonClick(bool) {
 
     //compute and display sell date
     QDateTime sellDate = ui->startDateEdit->dateTime().addDays(numDaysOnFeed);
-    //char sellDateString[200];
-    //sprintf(sellDateString, "%f", sellDate);
-    //QString sellDateString = sellDate.toString()
-    //ui->calculationResultTableWidget->setItem(6, 0, sellDateString);
-
 }
 
 void MainWindow::_printBuildInfo(void) {

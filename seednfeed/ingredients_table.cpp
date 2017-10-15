@@ -17,7 +17,7 @@ IngredientsTable::IngredientsTable(QObject* parent, QSqlDatabase db):
     setEditStrategy(QSqlTableModel::OnFieldChange);
 }
 
-Qt::ItemFlags IngredientsTable::flags(const QModelIndex &index) const {
+Qt::ItemFlags IngredientsTable::flags(const QModelIndex& /*index*/) const {
     return (Qt::ItemIsEnabled|Qt::ItemIsSelectable|Qt::ItemIsEditable);
 }
 
