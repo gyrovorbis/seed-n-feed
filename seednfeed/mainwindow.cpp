@@ -90,19 +90,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->rationCalculatorTableView->setModel(rationTable);
     ui->rationCalculatorTableView->setItemDelegate(new RationsTableDelegate);
 
-    connect(ui->addIngredientButton, SIGNAL(clicked(bool)), this , SLOT(onAddIngredientClick(bool)));
-    connect(ui->deleteIngredientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteIngredientClick(bool)));
-
-    connect(ui->addRationButton, SIGNAL(clicked(bool)), this, SLOT(onAddRationClick(bool)));
-    connect(ui->deleteRationButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteRationClick(bool)));
-    connect(ui->addAnimalNutritionReqButton, SIGNAL(clicked(bool)), this , SLOT(onAddAnimalNutritionReqClick(bool)));
-    connect(ui->deleteAnimalNutritionReqButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteAnimalNutritionReqClick(bool)));
-
     ui->rationCalculatorTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->nutritionalTotalsTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->calculationResultTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->animalNutritionReqTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->ingredientsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    connect(ui->addIngredientButton, SIGNAL(clicked(bool)), this , SLOT(onAddIngredientClick(bool)));
+    connect(ui->deleteIngredientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteIngredientClick(bool)));
+    connect(ui->addRationButton, SIGNAL(clicked(bool)), this, SLOT(onAddRationClick(bool)));
+    connect(ui->deleteRationButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteRationClick(bool)));
+    connect(ui->addAnimalNutritionReqButton, SIGNAL(clicked(bool)), this , SLOT(onAddAnimalNutritionReqClick(bool)));
+    connect(ui->deleteAnimalNutritionReqButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteAnimalNutritionReqClick(bool)));
+    connect(ingredientsTable, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(onIngredientsDataChanged(QModelIndex,QModelIndex,QVector<int>)));
 }
 
 MainWindow::~MainWindow(void)
@@ -325,6 +325,31 @@ void MainWindow::_printBuildInfo(void) {
     dbgPrintf("%-20s: %40s", "Build node",       STRINGIFY_MACRO(GYRO_BUILD_NODE));
     sprintf(strBuff, "%s %s", __DATE__, __TIME__);
     dbgPrintf("%-20s: %40s", "Build timestamp", strBuff);
+}
+
+void MainWindow::onIngredientsDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles) {
+    auto updatePerRole = [&](int role) {
+        if(role == Qt::EditRole) {
+            for(int row = topLeft.row(); row <= bottomRight.row(); ++row) {
+                for(int col = topLeft.column(); col <= bottomRight.column(); ++col) {
+                    switch(col) {
+                    case IngredientsTable::COL_DM: {
+                        Ingredient ingr = ingredientsTable->ingredientFromRow(row);
+                        rationTable->ingredientDMChanged(QString(ingr.name));
+                    }
+                    default: break;
+                    }
+                }
+            }
+        }
+    };
+
+    //roles param is optional and is assumed to be all roles if not provided!
+    if(roles.size()) {
+        for(auto role : roles) {
+            updatePerRole(role);
+        }
+    } else updatePerRole(Qt::EditRole);
 }
 
 

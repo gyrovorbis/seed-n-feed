@@ -1,4 +1,5 @@
 #include "ration_table.h"
+#include "rations_table_delegate.h"
 #include "utilities.h"
 #include <QDebug>
 
@@ -45,3 +46,15 @@ Ration RationTable::rationFromRow(int row) {
     return ration;
 }
 
+
+unsigned RationTable::ingredientDMChanged(QString ingredientName) {
+    int updatedCount = 0;
+    for(unsigned r = 0; r < rowCount(); ++r) {
+        Ration ration = rationFromRow(r);
+        if(ingredientName == QString(ration.ingredient)) {
+            ++updatedCount;
+            RationsTableDelegate::_updateReadOnlyColumns(this, index(r, COL_INGREDIENT));
+        }
+    }
+    return updatedCount;
+}

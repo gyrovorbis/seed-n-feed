@@ -32,6 +32,9 @@ public:
     virtual Qt::ItemFlags   flags(const QModelIndex &index) const override;
 
     Ration                  rationFromRow(int row);
+
+    //returns number of affected/updated rows
+    unsigned                ingredientDMChanged(QString ingredientName);
 };
 
 #endif // RATION_TABLE_H

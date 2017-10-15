@@ -61,6 +61,8 @@ private slots:
     void                onAddAnimalNutritionReqClick(bool);
     void                onDeleteAnimalNutritionReqClick(bool);
 
+    void                onIngredientsDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles);
+
 };
 
 #endif // MAINWINDOW_H
