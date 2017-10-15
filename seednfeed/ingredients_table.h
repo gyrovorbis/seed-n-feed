@@ -4,27 +4,26 @@
 #include <QSqlTableModel>
 
 #define INGREDIENT_NAME_SIZE    50
-#if 0
-"(name varchar(50) primary key, "
-"dm real, "
-"nem real,"
-"neg real,"
- "protein real,"
- "ca real,"
- "p real,"
-     "vita real)"))
-#endif
-
 
 struct Ingredient {
+    bool    nameValid = false;
     char    name[INGREDIENT_NAME_SIZE];
+    bool    dmValid = false;
     float   dm;
+    bool    nemValid = false;
     float   nem;
+    bool    negValid = false;
     float   neg;
+    bool    proteinValid = false;
     float   protein;
+    bool    caValid = false;
     float   ca;
+    bool    pValid = false;
     float   p;
+    bool    vitaValid = false;
     float   vita;
+
+    bool validate(QString& detailedText) const;
 };
 
 class IngredientsTable : public QSqlTableModel {
@@ -46,6 +45,7 @@ public:
 
     Ingredient              ingredientFromRow(int row);
     int                     rowFromName(QString name);
+    void                    insertHeaderData(void);
 };
 
 #endif // NUTRITIONALVALUE_H

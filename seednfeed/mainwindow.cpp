@@ -16,6 +16,8 @@
 #include "rations_table_delegate.h"
 //#include "qtdir/src/sql/drivers/sqlite/qsql_sqlite.cpp"
 #include "ingredients_table_delegate.h"
+#include "animal_nutrition_table_delegate.h"
+#include "totals_table_delegate.h"
 
 #define SPRINTF_TEMP_BUFF_SIZE  2048
 
@@ -65,6 +67,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ingredientsTable->setTable("Ingredients");
     ingredientsTable->select();
     ui->ingredientsTableView->setModel(ingredientsTable);
+    ui->ingredientsTableView->setItemDelegate(new IngredientsTableDelegate);
+    ingredientsTable->insertHeaderData();
 
     rationTable = new RationTable(this);
     RationsTableDelegate::setIngredientsTable(ingredientsTable);
@@ -72,16 +76,9 @@ MainWindow::MainWindow(QWidget *parent) :
     animalNutritionReqTable = new AnimalNutritionReqTable(this, db);
     animalNutritionReqTable->setTable("AnimalNutritionReq");
     animalNutritionReqTable->select();
-    animalNutritionReqTable->setHeaderData(0, Qt::Horizontal, "Animal Description");
-    animalNutritionReqTable->setHeaderData(1, Qt::Horizontal, "Weight (lb)");
-    animalNutritionReqTable->setHeaderData(2, Qt::Horizontal, "Daily Gain (lb)");
-    animalNutritionReqTable->setHeaderData(3, Qt::Horizontal, "Protein (g/day)");
-    animalNutritionReqTable->setHeaderData(4, Qt::Horizontal, "NEm (MCal/day)");
-    animalNutritionReqTable->setHeaderData(5, Qt::Horizontal, "NEg (MCal/day");
-    animalNutritionReqTable->setHeaderData(6, Qt::Horizontal, "Calcium (g/day)");
-    animalNutritionReqTable->setHeaderData(7, Qt::Horizontal, "Phosphorus (g/day)");
-    animalNutritionReqTable->setEditStrategy(QSqlTableModel::OnFieldChange);
     ui->animalNutritionReqTableView->setModel(animalNutritionReqTable);
+    ui->animalNutritionReqTableView->setItemDelegate(new AnimalNutritionTableDelegate);
+    animalNutritionReqTable->insertHeaderData();
 
     ui->rationCalculatorTableView->setModel(rationTable);
     ui->rationCalculatorTableView->setItemDelegate(new RationsTableDelegate);
@@ -91,6 +88,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->calculationResultTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->animalNutritionReqTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->ingredientsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    ui->animalComboBox->setModelColumn(animalNutritionReqTable, AnimalNutritionReqTable::COL_DESC);
+    ui->animalComboBox->populate();
+
+    ui->startDateEdit->setDate(QDate::currentDate());
+
+    ui->nutritionalTotalsTableWidget->setItemDelegate(new TotalsTableDelegate);
 
     connect(ui->addIngredientButton, SIGNAL(clicked(bool)), this , SLOT(onAddIngredientClick(bool)));
     connect(ui->deleteIngredientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteIngredientClick(bool)));
@@ -150,7 +154,7 @@ bool MainWindow::_debugInit(void) {
     return success;
 }
 
-bool MainWindow::_dbInit(void) {
+bool MainWindow::_dbInit(QString dbType) {
     bool success        = true;
     bool createNewDb    = false;
     QString dbPath      = QDir::current().absoluteFilePath(DATABASE_NAME);
@@ -161,7 +165,6 @@ bool MainWindow::_dbInit(void) {
     unsigned number = 0;
     for(auto driver: driverList) {
         dbgPrintf("\t[%d] - %s", ++number, Q_CSTR(driver));
-
     }
 
     if(dbFileInfo.exists()) {
@@ -171,8 +174,8 @@ bool MainWindow::_dbInit(void) {
         createNewDb = true;
     }
 
-    dbgPrintf("Setting DB connection type: %s", DATABASE_TYPE);
-    db = QSqlDatabase::addDatabase(DATABASE_TYPE);
+    dbgPrintf("Setting DB connection type: %s", Q_CSTR(dbType));
+    db = QSqlDatabase::addDatabase(dbType);
     db.setDatabaseName(dbPath);
 
     if(!db.open()) {
@@ -182,7 +185,7 @@ bool MainWindow::_dbInit(void) {
         dbgPrintf("Successfully connected to database!");
     }
 
-    if(createNewDb) {
+    if(/*createNewDb || */!db.tables().contains("Ingredients")) {
         QSqlQuery query;
         if(!query.exec("create table Ingredients"
                   "(name varchar(" STRINGIFY_MACRO(INGREDIENT_NAME_SIZE) ") primary key, "
@@ -192,23 +195,28 @@ bool MainWindow::_dbInit(void) {
                    "protein real,"
                    "ca real,"
                    "p real,"
-                       "vita real)"))
+                   "vita real)"))
         {
             qCritical() << "Create ingredients table query failed: " << query.lastError();
             success = false;
         } else {
             dbgPrintf("Create ingredients table query succeeded!");
         }
+    }
 
+    if(/*createNewDb || */!db.tables().contains("AnimalNutritionReq")) {
+        QSqlQuery query;
         if(!query.exec("create table AnimalNutritionReq"
-                  "(animaldescription varchar(50) primary key, "
+                  "(animaldescription varchar(" STRINGIFY_MACRO(ANIMAL_NUTRITION_REQ_DESC_SIZE) ") primary key, "
+                  "type int,"
                   "weight real,"
                   "dailygain real,"
                   "protein real,"
                   "nem real,"
                   "neg real,"
                   "calcium real,"
-                  "phosphorus real)"))
+                  "phosphorus real,"
+                  "vita real)"))
         {
             qCritical() << "Create animalNutritionReq table query failed: " << query.lastError();
             success = false;
@@ -297,33 +305,134 @@ void MainWindow::onDeleteRationClick(bool) {
 
 }
 
+bool MainWindow::_validateCalculationInputs(void) {
+    QMessageBox msgBox;
+    QString     detailedText;
+    bool        success = true;
+    int         rows = rationTable->rowCount();
+    QStringList validatedIngredients;
+
+    float startWeight = ui->currentBodyWeightSpinBox->value();
+    float finishedWeight = ui->expectedSellWeightSpinBox->value();
+    float slaughterWeight = ui->finishedWeightDoubleSpinBox->value();
+
+    if(startWeight == 0.0f) {
+        detailedText += QString("'Current Body Weight' (lbs) should be greater than 0.0!\n");
+        success = false;
+    }
+
+    if(finishedWeight == 0.0f) {
+        detailedText += QString("'Expected Sell Weight' (lbs) should be greater than 0.0!\n");
+        success = false;
+    } else if(finishedWeight <= startWeight) {
+        detailedText += QString("'Expected Sell Weight' (lbs) should be greater than 'Current Weight' (lbs)!\n");
+        success = false;
+    }
+
+    if(slaughterWeight == 0.0f) {
+        detailedText += QString("'Finished (Slaughter) Weight' (lbs) should be greater than 0.0!\n");
+        success = false;
+    } else if(slaughterWeight < finishedWeight) {
+        detailedText += QString("Finished (Slaughter) Weight' (lbs) should be greater than or equal to 'Expected Sell Weight' (lbs)!\n");
+        success = false;
+    }
+
+    if(!rows) {
+        success = false;
+        detailedText += QString("No rations provided!\n");
+    } else {
+
+        for (int i = 0; i < rows; i++) {
+            Ration ration = rationTable->rationFromRow(i);
+            success &= ration.validate(detailedText);
+
+            int ingredientRow = ingredientsTable->rowFromName(ration.ingredient);
+            if(ingredientRow == -1) {
+                detailedText += QString("Ingredient '") + QString(ration.ingredient) + QString("' could not be found!\n");
+                success = false;
+            } else {
+                if(!validatedIngredients.contains(ration.ingredient)) {
+                    Ingredient ingredient = ingredientsTable->ingredientFromRow(ingredientRow);
+                    success &= ingredient.validate(detailedText);
+                    validatedIngredients.push_back(ration.ingredient);
+                }
+            }
+        }
+    }
+
+    int reqRow = animalNutritionReqTable->rowFromDesc(ui->animalComboBox->currentText());
+    if(reqRow == -1) {
+        detailedText += QString("No animal requirements selected!\n");
+        success = false;
+    } else {
+        AnimalNutritionReq animalReq = animalNutritionReqTable->nutritionReqFromRow(reqRow);
+        success &= animalReq.validate(detailedText);
+    }
+
+    if(!success) {
+        msgBox.setText("Failed to calculate data!");
+        msgBox.setInformativeText(QString("Missing one or more pieces of input data required to perform the calculations. See details for more information."));
+        msgBox.setStandardButtons(QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setDetailedText(detailedText);
+        QSpacerItem* horizontalSpacer = new QSpacerItem(500, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+        QGridLayout* layout = (QGridLayout*)msgBox.layout();
+        layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+        msgBox.exec();
+    }
+    return success;
+}
+
+void MainWindow::_clearTotalsTable(void) {
+    for(int r = 0; r < ui->nutritionalTotalsTableWidget->rowCount(); ++r) {
+        for(int c = 0; c < ui->nutritionalTotalsTableWidget->columnCount(); ++c) {
+            auto* item = ui->nutritionalTotalsTableWidget->item(r, c);
+            if(item) item->setData(Qt::EditRole, QString(""));
+        }
+    }
+}
+
+void MainWindow::_clearCalculationTable(void) {
+    for(int r = 0; r < ui->calculationResultTableWidget->rowCount(); ++r) {
+        for(int c = 0; c < ui->calculationResultTableWidget->columnCount(); ++c) {
+            auto* item = ui->calculationResultTableWidget->item(r, c);
+            if(item) item->setData(Qt::EditRole, QString(""));
+        }
+    }
+}
+
 void MainWindow::onCalculateButtonClick(bool) {
+    _clearTotalsTable();
+    _clearCalculationTable();
+    if(!_validateCalculationInputs()) return;
     int rows = rationTable->rowCount();
     float totalNem = 0, totalNeg = 0, totalProtein = 0, totalCa = 0, totalPhosphorus = 0, totalVitA = 0;
 
-    for (int i=0; i<rows; i++) {
+    for (int i = 0; i < rows; i++) {
         Ration ration = rationTable->rationFromRow(i);
         int ingredientRow = ingredientsTable->rowFromName(ration.ingredient);
 
         if (ingredientRow != -1) {
             Ingredient ingredient = ingredientsTable->ingredientFromRow(ingredientRow);
-            totalNem += ingredient.nem;
-            totalNeg += ingredient.neg;
-            totalProtein += ingredient.protein;
-            totalCa += ingredient.ca;
+            totalNem        += ingredient.nem;
+            totalNeg        += ingredient.neg;
+            totalProtein    += ingredient.protein;
+            totalCa         += ingredient.ca;
             totalPhosphorus += ingredient.p;
-            totalVitA += ingredient.vita;
+            totalVitA       += ingredient.vita;
         }
     }
 
     char totalNemString[200], totalNegString[200], totalProteinString[200], totalCaString[200], totalPhosphorusString[200], totalVitAString[200];
 
-    sprintf(totalNemString, "%f", totalNem);
-    sprintf(totalNegString, "%f", totalNeg);
-    sprintf(totalProteinString, "%f", totalProtein);
-    sprintf(totalCaString, "%f", totalCa);
-    sprintf(totalPhosphorusString, "%f", totalPhosphorus);
-    sprintf(totalVitAString, "%f", totalVitA);
+    sprintf(totalNemString,         "%.2f", totalNem);
+    sprintf(totalNegString,         "%.2f", totalNeg);
+    sprintf(totalProteinString,     "%.2f", totalProtein);
+    sprintf(totalCaString,          "%.2f", totalCa);
+    sprintf(totalPhosphorusString,  "%.2f", totalPhosphorus);
+    sprintf(totalVitAString,        "%.2f", totalVitA);
 
 
     auto createItem = [](QString label) {
@@ -339,61 +448,103 @@ void MainWindow::onCalculateButtonClick(bool) {
     ui->nutritionalTotalsTableWidget->setItem(4, 0, createItem(totalPhosphorusString));
     ui->nutritionalTotalsTableWidget->setItem(5, 0, createItem(totalVitAString));
 
-    //Compute average weight gained per day (lbs)
-    float totalFeedPerDay = 0.0;
-    float totalCostPerDay = 0.0;
-    for (int i=0; i<rows; i++) {
-        Ration ration = rationTable->rationFromRow(i);
-        totalFeedPerDay += ration.asFed;
-        totalCostPerDay += ration.costPerDay;
+    AnimalNutritionReq req = animalNutritionReqTable->nutritionReqFromRow(animalNutritionReqTable->rowFromDesc(ui->animalComboBox->currentText()));
+
+    float sum[6] = {
+        totalNem, totalNeg, totalProtein, totalCa, totalPhosphorus, totalVitA
+    };
+    float expected[6] = {
+        req.nem, req.neg, req.protein, req.calcium, req.phosphorus, req.vita
+    };
+
+
+    for(unsigned i = 0; i < 6; ++i) {
+        float diff = fabs(expected[i]-sum[i]);
+        QTableWidgetItem* item = new QTableWidgetItem(QString::number(expected[i]) + QString(" (")+QString::number(sum[i]/expected[i]*100.0f)+QString(")"));
+        item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+        item->setData(Qt::EditRole, sum[i]/expected[i]);
+
+        if(diff <= expected[i]*TOTALS_TABLE_DIFF_GREEN_RANGE) {
+            item->setData(Qt::BackgroundRole, QColor(Qt::green));
+        } else if(diff <= expected[i]*TOTALS_TABLE_DIFF_YELLOW_RANGE){
+            item->setData(Qt::BackgroundRole, QColor(Qt::yellow));
+        } else {
+            item->setData(Qt::BackgroundRole, QColor(Qt::red));
+        }
+        ui->nutritionalTotalsTableWidget->setItem(i, 1, item);
     }
-    float maintenanceEnergyFromRation = totalNem / totalFeedPerDay;
-    float energyAvailForGainingFromRation = totalNeg / totalFeedPerDay;
-    float currentWeightKgs = ui->currentBodyWeightSpinBox->value() * 0.453592;
-    float dailyEnergyReqForCattle = (0.077 * qPow(currentWeightKgs, 0.75));
-    float feedRequiredToMaintainWeight = dailyEnergyReqForCattle / maintenanceEnergyFromRation;
-    float amountOfFeedLeftForGaining = totalFeedPerDay - feedRequiredToMaintainWeight;
-    float netEnergyForGainingFromRemainingFeed = amountOfFeedLeftForGaining * energyAvailForGainingFromRation;
-    float liveWeightGainForMedFrameSteerKg = 13.91 * qPow(netEnergyForGainingFromRemainingFeed, 0.9116) * qPow(currentWeightKgs, -0.6837);
-    float liveWeightGainForMedFrameSteerlb = liveWeightGainForMedFrameSteerKg / 0.453592;
 
+    if(req.type < ANIMAL_TYPE_CUSTOM) {
+        auto& energyData = AnimalNutritionReqTable::builtinEnergyTable[req.type];
+        ui->calculationResultTableWidget->setEnabled(true);
 
-    char liveWeightGainForMedFrameSteerlbString[200];
-    sprintf(liveWeightGainForMedFrameSteerlbString, "%f", liveWeightGainForMedFrameSteerlb);
-    ui->calculationResultTableWidget->setItem(3, 0, createItem(liveWeightGainForMedFrameSteerlbString));
-    //END compute and display average weight gained per day (lbs)
+        //Compute average weight gained per day (lbs)
+        float totalFeedPerDay = 0.0;
+        float totalCostPerDay = 0.0;
+        for (int i = 0; i < rows; i++) {
+            Ration ration = rationTable->rationFromRow(i);
+            totalFeedPerDay += ration.asFed;
+            totalCostPerDay += ration.costPerDay;
+        }
 
-    //display total cost per day
-    char totalCostPerDayString[200];
-    sprintf(totalCostPerDayString, "%f", totalCostPerDay);
-    ui->calculationResultTableWidget->setItem(0, 0, createItem(totalCostPerDayString));
+        float maintenanceEnergyFromRation = totalNem / totalFeedPerDay;
+        float energyAvailForGainingFromRation = totalNeg / totalFeedPerDay;
 
-    //compute and display cost per pound gained
-    float costPerPoundGained = totalCostPerDay / liveWeightGainForMedFrameSteerlb;
-    char costPerPoundGainedString[200];
-    sprintf(costPerPoundGainedString, "%f", costPerPoundGained);
-    ui->calculationResultTableWidget->setItem(1, 0, createItem(costPerPoundGainedString));
+        //standard metric conversion
+        float currentWeightKgs = ui->currentBodyWeightSpinBox->value() * KG_PER_LB;
 
-    //compute and display days on feed
-    float numDaysOnFeed = (ui->expectedSellWeightSpinBox->value() - ui->currentBodyWeightSpinBox->value())/liveWeightGainForMedFrameSteerlb;
-    char numDaysOnFeedString[200];
-    sprintf(numDaysOnFeedString, "%f", numDaysOnFeed);
-    ui->calculationResultTableWidget->setItem(4, 0, createItem(numDaysOnFeedString));
+        //same for all cattle (steers, heifers, bulls, cows
+        float dailyEnergyReqForCattle = (0.077 * qPow(currentWeightKgs, 0.75));
 
-    //compute and display cost per head
-    float costPerHead = totalCostPerDay * numDaysOnFeed;
-    char costPerHeadString[200];
-    sprintf(costPerHeadString, "%f", costPerHead);
-    ui->calculationResultTableWidget->setItem(2, 0, createItem(costPerHeadString));
+        float feedRequiredToMaintainWeight = dailyEnergyReqForCattle / maintenanceEnergyFromRation;
+        float amountOfFeedLeftForGaining = totalFeedPerDay - feedRequiredToMaintainWeight;
+        float netEnergyForGainingFromRemainingFeed = amountOfFeedLeftForGaining * energyAvailForGainingFromRation;
 
-    //compute and display weeks on feed
-    float numWeeksOnFeed = numDaysOnFeed / 7.0;
-    char numWeeksOnFeedString[200];
-    sprintf(numWeeksOnFeedString, "%f", numWeeksOnFeed);
-    ui->calculationResultTableWidget->setItem(5, 0, createItem(numWeeksOnFeedString));
+        //different depending on frames of shit
+        float liveWeightGainForMedFrameSteerKg = energyData.negCoeff * qPow(netEnergyForGainingFromRemainingFeed, energyData.negExp) * qPow(currentWeightKgs, energyData.weightExp);
+        float liveWeightGainForMedFrameSteerlb = liveWeightGainForMedFrameSteerKg / 0.453592;
 
-    //compute and display sell date
-    QDateTime sellDate = ui->startDateEdit->dateTime().addDays(numDaysOnFeed);
+        char liveWeightGainForMedFrameSteerlbString[200];
+        sprintf(liveWeightGainForMedFrameSteerlbString, "%.2f", liveWeightGainForMedFrameSteerlb);
+        ui->calculationResultTableWidget->setItem(3, 0, createItem(liveWeightGainForMedFrameSteerlbString));
+        //END compute and display average weight gained per day (lbs)
+
+        //display total cost per day
+        char totalCostPerDayString[200];
+        sprintf(totalCostPerDayString, "%.2f", totalCostPerDay);
+        ui->calculationResultTableWidget->setItem(0, 0, createItem(totalCostPerDayString));
+
+        //compute and display cost per pound gained
+        float costPerPoundGained = totalCostPerDay / liveWeightGainForMedFrameSteerlb;
+        char costPerPoundGainedString[200];
+        sprintf(costPerPoundGainedString, "%.2f", costPerPoundGained);
+        ui->calculationResultTableWidget->setItem(1, 0, createItem(costPerPoundGainedString));
+
+        //compute and display days on feed
+        float numDaysOnFeed = (ui->expectedSellWeightSpinBox->value() - ui->currentBodyWeightSpinBox->value())/liveWeightGainForMedFrameSteerlb;
+        char numDaysOnFeedString[200];
+        sprintf(numDaysOnFeedString, "%.2f", numDaysOnFeed);
+        ui->calculationResultTableWidget->setItem(4, 0, createItem(numDaysOnFeedString));
+
+        //compute and display cost per head
+        float costPerHead = totalCostPerDay * numDaysOnFeed;
+        char costPerHeadString[200];
+        sprintf(costPerHeadString, "%.2f", costPerHead);
+        ui->calculationResultTableWidget->setItem(2, 0, createItem(costPerHeadString));
+
+        //compute and display weeks on feed
+        float numWeeksOnFeed = numDaysOnFeed / 7.0;
+        char numWeeksOnFeedString[200];
+        sprintf(numWeeksOnFeedString, "%.2f", numWeeksOnFeed);
+        ui->calculationResultTableWidget->setItem(5, 0, createItem(numWeeksOnFeedString));
+
+        //compute and display sell date
+        QDateTime sellDate = ui->startDateEdit->dateTime().addDays(numDaysOnFeed);
+        ui->calculationResultTableWidget->setItem(6, 0, createItem(sellDate.date().toString()));
+    } else {
+        ui->calculationResultTableWidget->setEnabled(false);
+
+    }
 }
 
 void MainWindow::_printBuildInfo(void) {
@@ -445,5 +596,4 @@ void MainWindow::onIngredientsDataChanged(const QModelIndex &topLeft, const QMod
         }
     } else updatePerRole(Qt::EditRole);
 }
-
 

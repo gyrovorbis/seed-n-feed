@@ -29,15 +29,17 @@ Ration RationTable::rationFromRow(int row) {
         auto name = index(row, COL_INGREDIENT).data().toString();
         if(name.isEmpty() || name.isNull()) {
             ration.ingredient[0] = '\0';
+            ration.ingredientValid = false;
         } else {
             strcpy(ration.ingredient, Q_CSTR(name));
+            ration.ingredientValid = true;
         }
 
-        ration.asFed        = index(row, COL_AS_FED).data().toFloat();
-        ration.costPerUnit  = index(row, COL_COST_PER_UNIT).data().toFloat();
-        ration.weight       = index(row, COL_WEIGHT).data().toFloat();
-        ration.costPerDay   = index(row, COL_COST_PER_DAY).data().toFloat();
-        ration.dm           = index(row, COL_DM).data().toFloat();
+        ration.asFed        = index(row, COL_AS_FED).data().toFloat(&ration.asFedValid);
+        ration.costPerUnit  = index(row, COL_COST_PER_UNIT).data().toFloat(&ration.costPerUnitValid);
+        ration.weight       = index(row, COL_WEIGHT).data().toFloat(&ration.weightValid);
+        ration.costPerDay   = index(row, COL_COST_PER_DAY).data().toFloat(&ration.costPerDayValid);
+        ration.dm           = index(row, COL_DM).data().toFloat(&ration.dmValid);
 
     } else {
         qCritical() << "Requesting invalid Ration row index: " << row;
@@ -49,7 +51,7 @@ Ration RationTable::rationFromRow(int row) {
 
 unsigned RationTable::ingredientDMChanged(QString ingredientName) {
     int updatedCount = 0;
-    for(unsigned r = 0; r < rowCount(); ++r) {
+    for(int r = 0; r < rowCount(); ++r) {
         Ration ration = rationFromRow(r);
         if(ingredientName == QString(ration.ingredient)) {
             ++updatedCount;
@@ -57,4 +59,39 @@ unsigned RationTable::ingredientDMChanged(QString ingredientName) {
         }
     }
     return updatedCount;
+}
+
+QVariant RationTable::data(const QModelIndex &index, int role) const {
+    switch(index.column()) {
+    case COL_DM:
+    case COL_COST_PER_DAY:
+        switch(role) {
+        case Qt::BackgroundRole: return QColor(Qt::lightGray);
+        default: break;
+        }
+    default:
+        return QStandardItemModel::data(index, role);
+
+    }
+}
+
+bool Ration::validate(QString &detailedText) const {
+    bool success = true;
+    auto validateField = [&](bool valid, QString name) {
+        if(!valid) {
+            if(ingredientValid) detailedText += QString("Ration '") + QString(ingredient) + QString("' ");
+            detailedText += QString("invalid field: ") + name + QString("\n");
+            success = false;
+        }
+    };
+
+   validateField(ingredientValid, "Ingredient");
+   validateField(asFedValid, "As Fed, lbs");
+   validateField(costPerUnitValid, "Cost Per Unit ($/Unit)");
+   validateField(weightValid, "Weight (lbs/unit)");
+   //validateField(costPerDayValid, "Cost Per Day");
+   //validateField(dm, "DM (lbs)");
+
+    return success;
+
 }

@@ -8,12 +8,20 @@
 #define RATION_ITEM_TYPE_SIZE   50
 
 struct Ration {
+    bool    ingredientValid = false;
     char    ingredient[INGREDIENT_NAME_SIZE];
+    bool    asFedValid = false;
     float   asFed;
+    bool    costPerUnitValid = false;
     float   costPerUnit;
+    bool    weightValid = false;
     float   weight;
+    bool    costPerDayValid = false;
     float   costPerDay;
+    bool    dmValid = false;
     float   dm;
+
+    bool validate(QString& detailedText) const;
 };
 
 class RationTable : public QStandardItemModel {
@@ -30,6 +38,7 @@ public:
 
                             RationTable(QObject* parent=nullptr);
     virtual Qt::ItemFlags   flags(const QModelIndex &index) const override;
+    virtual QVariant        data(const QModelIndex &index, int role) const override;
 
     Ration                  rationFromRow(int row);
 

@@ -5,10 +5,10 @@
 #include <QSqlDatabase>
 #include <QDir>
 
-#define DATABASE_NAME   "seed_and_feed.db"
-#define DATABASE_TYPE   "QSQLITE"
-#define DEBUG_LOG_NAME  "debug_log.txt"
-#define USER_DIR_NAME   "seednfeed"
+#define DATABASE_NAME      "seed_and_feed.db"
+#define DATABASE_TYPE      "QSQLITE"
+#define DEBUG_LOG_NAME     "debug_log.txt"
+#define USER_DIR_NAME      "seednfeed"
 
 namespace Ui {
     class MainWindow;
@@ -44,8 +44,11 @@ private:
     virtual void        closeEvent(QCloseEvent *event) override;
 
     bool                _debugInit(void);
-    bool                _dbInit(void);
+    bool                _dbInit(QString dbType=DATABASE_TYPE);
     void                _printBuildInfo(void);
+    bool                _validateCalculationInputs(void);
+    void                _clearTotalsTable(void);
+    void                _clearCalculationTable(void);
 
     static void         logQ(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static void         dbgPrintf(const char* str, ...);

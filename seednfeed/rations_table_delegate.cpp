@@ -3,6 +3,8 @@
 #include "ingredients_table.h"
 #include <QComboBox>
 #include <QCompleter>
+#include <QLineEdit>
+#include <cmath>
 
 //===== STATIC =====
 IngredientsTable* RationsTableDelegate::ingredientsTable = nullptr;
@@ -12,50 +14,36 @@ void RationsTableDelegate::setIngredientsTable(IngredientsTable *table) {
 }
 
 //===== INSTANCE =====
-RationsTableDelegate::RationsTableDelegate(QObject *parent): QStyledItemDelegate(parent) {
+RationsTableDelegate::RationsTableDelegate(QObject *parent):
+    QStyledItemDelegate(parent)
+{}
 
-}
-
-#if 0
-void RationsTableDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
-
-}
-QSize RationsTableDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
-
-}
-
-void RationsTableDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const {
-
-}
-
-#endif
-QWidget* RationsTableDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+QWidget* RationsTableDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &/*option*/, const QModelIndex &index) const {
     switch(index.column()) {
-    case RationTable::COL_INGREDIENT: {
-        QComboBox* comboBox = new QComboBox(parent);
-        //comboBox->setEditable(true);
+        case RationTable::COL_INGREDIENT: {
+            QComboBox* comboBox = new QComboBox(parent);
+            //comboBox->setEditable(true);
 
-        int rows = ingredientsTable->rowCount();
-        QStringList stringList;
-        for(unsigned i = 0; i < rows; ++i) stringList.append(ingredientsTable->index(i, 0).data().toString());
+            int rows = ingredientsTable->rowCount();
+            QStringList stringList;
+            for(int i = 0; i < rows; ++i) stringList.append(ingredientsTable->index(i, 0).data().toString());
 
-        for(auto&& it : stringList) {
-            comboBox->addItem(it, it);
+            for(auto&& it : stringList) {
+                comboBox->addItem(it, it);
+            }
+
+            QCompleter* completer = new QCompleter(stringList);
+
+            comboBox->setCompleter(completer);
+
+            return comboBox;
         }
-
-        QCompleter* completer = new QCompleter(stringList);
-
-        comboBox->setCompleter(completer);
-
-        return comboBox;
-
+        default: {
+            QLineEdit *lineEdit = new QLineEdit(parent);
+            lineEdit->setValidator(new QDoubleValidator(0.01, std::numeric_limits<double>::max(), 10));
+            return lineEdit;
+        }
     }
-    default:
-        return QStyledItemDelegate::createEditor(parent, option, index);
-    }
-
-
-
 }
 void RationsTableDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
     switch(index.column()) {
@@ -73,7 +61,6 @@ void RationsTableDelegate::setEditorData(QWidget *editor, const QModelIndex &ind
 void RationsTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
     switch(index.column()) {
     case RationTable::COL_INGREDIENT: {
-
         QComboBox* comboBox = static_cast<QComboBox*>(editor);
         model->setData(index, comboBox->currentText());
         break;
@@ -91,11 +78,20 @@ void RationsTableDelegate::_updateReadOnlyColumns(QAbstractItemModel* model, con
 
     if(row != -1) {
         Ingredient ingredient = ingredientsTable->ingredientFromRow(row);
-        float costPerDay    = (ration.asFed/ration.weight)/ration.costPerUnit;
-        float dm            = (ration.asFed/ingredient.dm);
+        float costPerDay    = (ration.asFed*ration.costPerUnit)/ration.weight;
+        float dm            = (ration.asFed*ingredient.dm);
 
-        rationTable->setData(rationTable->index(index.row(), RationTable::COL_COST_PER_DAY), costPerDay);
-        rationTable->setData(rationTable->index(index.row(), RationTable::COL_DM), dm);
+        if(std::isnan(costPerDay) || std::isinf(costPerDay)) {
+            rationTable->setData(rationTable->index(index.row(), RationTable::COL_COST_PER_DAY), QString());
+        } else {
+            rationTable->setData(rationTable->index(index.row(), RationTable::COL_COST_PER_DAY), costPerDay);
+        }
+
+        if(std::isnan(dm) || std::isinf(dm)) {
+            rationTable->setData(rationTable->index(index.row(), RationTable::COL_DM), QString());
+        } else {
+            rationTable->setData(rationTable->index(index.row(), RationTable::COL_DM), dm);
+        }
 
     }
 

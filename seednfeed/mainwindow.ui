@@ -76,16 +76,6 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="2">
-             <widget class="QLineEdit" name="animalTypeLineEdit">
-              <property name="maximumSize">
-               <size>
-                <width>200</width>
-                <height>16777215</height>
-               </size>
-              </property>
-             </widget>
-            </item>
             <item row="7" column="2">
              <widget class="QDoubleSpinBox" name="expectedSellWeightSpinBox">
               <property name="maximumSize">
@@ -164,6 +154,18 @@
               </property>
              </widget>
             </item>
+            <item row="0" column="2">
+             <widget class="DynamicModelColumnComboBox" name="animalComboBox">
+              <property name="currentText">
+               <string>SELECT</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>SELECT</string>
+               </property>
+              </item>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -216,7 +218,7 @@
                </size>
               </property>
               <property name="text">
-               <string>delete item</string>
+               <string>delete row</string>
               </property>
              </widget>
             </item>
@@ -254,6 +256,9 @@
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="1" column="1">
            <widget class="QTableWidget" name="calculationResultTableWidget">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
             <row>
              <property name="text">
               <string>Total Cost per Day, $</string>
@@ -298,6 +303,12 @@
           </item>
           <item row="1" column="0">
            <widget class="QTableWidget" name="nutritionalTotalsTableWidget">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="rowCount">
+             <number>6</number>
+            </property>
             <row>
              <property name="text">
               <string>NEm (Mcal/day)</string>
@@ -320,12 +331,12 @@
             </row>
             <row>
              <property name="text">
-              <string>Phosphorus, (g/day)</string>
+              <string>Phosphorus (g/day)</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Vit A, IU</string>
+              <string>Vitamin A (g/day)</string>
              </property>
             </row>
             <column>
@@ -412,7 +423,7 @@
                </size>
               </property>
               <property name="text">
-               <string>delete item</string>
+               <string>delete row</string>
               </property>
              </widget>
             </item>
@@ -454,7 +465,7 @@
              </size>
             </property>
             <property name="text">
-             <string>delete item</string>
+             <string>delete row</string>
             </property>
            </widget>
           </item>
@@ -509,6 +520,13 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>DynamicModelColumnComboBox</class>
+   <extends>QComboBox</extends>
+   <header>dynamic_model_column_combobox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

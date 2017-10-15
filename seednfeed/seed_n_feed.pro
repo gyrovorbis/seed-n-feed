@@ -31,7 +31,11 @@ SOURCES += \
     ration_table.cpp \
     ingredients_table_delegate.cpp \
     rations_table_delegate.cpp \
-    animal_nutrition_req_table.cpp
+    animal_nutrition_req_table.cpp \
+    duplicate_column_model_validator.cpp \
+    animal_nutrition_table_delegate.cpp \
+    dynamic_model_column_combobox.cpp \
+    totals_table_delegate.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +45,11 @@ HEADERS += \
     ingredients_table_delegate.h \
     utilities.h \
     rations_table_delegate.h \
-    animal_nutrition_req_table.h
+    animal_nutrition_req_table.h \
+    duplicate_column_model_validator.h \
+    animal_nutrition_table_delegate.h \
+    dynamic_model_column_combobox.h \
+    totals_table_delegate.h
 
 FORMS += \
         mainwindow.ui
