@@ -22,34 +22,43 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+INCLUDEPATH += include
+
+DEPENDPATH += \
+        include \
+        include/model \
+        include/ui \
+        include/delegate \
+        include/core
 
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp \
-    animalprojection.cpp \
-    ingredients_table.cpp \
-    ration_table.cpp \
-    ingredients_table_delegate.cpp \
-    rations_table_delegate.cpp \
-    animal_nutrition_req_table.cpp \
-    duplicate_column_model_validator.cpp \
-    animal_nutrition_table_delegate.cpp \
-    dynamic_model_column_combobox.cpp \
-    totals_table_delegate.cpp
+        source/core/main.cpp \
+        source/model/ingredients_table.cpp \
+        source/model/ration_table.cpp \
+        source/delegate/ingredients_table_delegate.cpp \
+        source/delegate/rations_table_delegate.cpp \
+        source/model/animal_nutrition_req_table.cpp \
+        source/delegate/duplicate_column_model_validator.cpp \
+        source/delegate/animal_nutrition_table_delegate.cpp \
+        source/delegate/dynamic_model_column_combobox.cpp \
+        source/delegate/totals_table_delegate.cpp \
+        source/ui/error_warning_dialog.cpp \
+    source/ui/mainwindow.cpp
 
 HEADERS += \
-        mainwindow.h \
-    animalprojection.h \
-    ingredients_table.h \
-    ration_table.h \
-    ingredients_table_delegate.h \
-    utilities.h \
-    rations_table_delegate.h \
-    animal_nutrition_req_table.h \
-    duplicate_column_model_validator.h \
-    animal_nutrition_table_delegate.h \
-    dynamic_model_column_combobox.h \
-    totals_table_delegate.h
+        include/model/ingredients_table.h \
+        include/model/ration_table.h \
+        include/delegate/ingredients_table_delegate.h \
+        include/core/utilities.h \
+        include/delegate/rations_table_delegate.h \
+        include/model/animal_nutrition_req_table.h \
+        include/delegate/duplicate_column_model_validator.h \
+        include/delegate/animal_nutrition_table_delegate.h \
+        include/delegate/dynamic_model_column_combobox.h \
+        include/delegate/totals_table_delegate.h \
+        include/ui/error_warning_dialog.h \
+    include/ui/mainwindow.h
 
 FORMS += \
-        mainwindow.ui
+        form/error_warning_dialog.ui \
+    form/mainwindow.ui
