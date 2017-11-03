@@ -43,7 +43,10 @@ SOURCES += \
         source/delegate/dynamic_model_column_combobox.cpp \
         source/delegate/totals_table_delegate.cpp \
         source/ui/error_warning_dialog.cpp \
-    source/ui/mainwindow.cpp
+    source/ui/mainwindow.cpp \
+    source/model/sql_table.cpp \
+    source/ui/sql_table_view.cpp \
+    source/core/tk_menu_stack.cpp
 
 HEADERS += \
         include/model/ingredients_table.h \
@@ -57,7 +60,10 @@ HEADERS += \
         include/delegate/dynamic_model_column_combobox.h \
         include/delegate/totals_table_delegate.h \
         include/ui/error_warning_dialog.h \
-    include/ui/mainwindow.h
+    include/ui/mainwindow.h \
+    include/model/sql_table.h \
+    include/ui/sql_table_view.h \
+    include/core/tk_menu_stack.h
 
 FORMS += \
         form/error_warning_dialog.ui \
