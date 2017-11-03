@@ -24,6 +24,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 INCLUDEPATH += include
 
+DESTDIR = ../executable
+
 DEPENDPATH += \
         include \
         include/model \
