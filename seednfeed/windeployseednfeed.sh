@@ -1,4 +1,4 @@
-cd executable
+cd ../executable
 rm -rf *.dll
 windeployqt --release --compiler-runtime seednfeed.exe
 #cd ../libGyro/lib/win32
