@@ -375,11 +375,10 @@ def triggerNextJobLambda(job, success=true)
 
 end
 
-assetMac 	= JenkinsJob.new("ESAssets_MacOS")
-assetLinux	= JenkinsJob.new("ESAssets_Debian_x64")
+buildWin 	= JenkinsJob.new("SeedNFeed_Win_x86")
 
-$mgr.addJob(assetMac)
-$mgr.addJob(assetLinux)
+
+$mgr.addJob(buildWin)
 
 while $mgr.update == false do
 	sleep(1.0) 
