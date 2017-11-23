@@ -21,7 +21,9 @@ class ErrorWarningDialog;
 
 class IngredientsTable;
 class RationTable;
+class RecipeTable;
 class AnimalNutritionReqTable;
+class NutrientTable;
 
 class MainWindow : public QMainWindow
 {
@@ -46,6 +48,8 @@ private:
     IngredientsTable*        _ingredientsTable          = nullptr;
     AnimalNutritionReqTable* _animalNutritionReqTable   = nullptr;
     RationTable*             _rationTable               = nullptr;
+    RecipeTable*             _recipeTable               = nullptr;
+    NutrientTable*           _nutrientTable             = nullptr;
     QDir                     _userDir;
     QString                  _dbPath;
     static FILE*             _dbgLogFile;
@@ -67,6 +71,7 @@ private:
     void                _clearTotalsTable(void);
     void                _clearCalculationTable(void);
     void                _initStatusBar(void);
+    void                _updateTotalsTableRows(void);
 
     static void         logQ(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static void         dbgPrintf(const char* str, ...);
@@ -75,6 +80,13 @@ private:
 private slots:
     void                onAddIngredientClick(bool);
     void                onDeleteIngredientClick(bool);
+
+    void                onAddNutrientClick(bool);
+    void                onDeleteNutrientClick(bool);
+
+    void                onAddRecipeClick(bool);
+    void                onDeleteRecipeClick(bool);
+    void                onRecipeSelectionChanged(const QModelIndex& selected, const QModelIndex& deselected);
 
     void                onAddRationClick(bool);
     void                onDeleteRationClick(bool);

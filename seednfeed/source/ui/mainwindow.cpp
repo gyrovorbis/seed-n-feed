@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QtMath>
 #include <QFileDialog>
+#include <QSqlRelationalDelegate>
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -20,6 +21,8 @@
 #include "model/ingredients_table.h"
 #include "model/animal_nutrition_req_table.h"
 #include "model/ration_table.h"
+#include "model/recipe_table.h"
+#include "model/nutrient_table.h"
 #include "delegate/rations_table_delegate.h"
 #include "ui/error_warning_dialog.h"
 #include "delegate/ingredients_table_delegate.h"
@@ -74,14 +77,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     _ui->ingredientsTableView->setItemDelegate(new IngredientsTableDelegate);
     _ui->animalNutritionReqTableView->setItemDelegate(new AnimalNutritionTableDelegate);
-    _ui->rationCalculatorTableView->setItemDelegate(new RationsTableDelegate);
     _ui->nutritionalTotalsTableWidget->setItemDelegate(new TotalsTableDelegate);
+    _ui->rationTableView->setItemDelegate(new RationsTableDelegate);
 
-    _ui->rationCalculatorTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     _ui->nutritionalTotalsTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     _ui->calculationResultTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     _ui->animalNutritionReqTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     _ui->ingredientsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    _ui->rationTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    _ui->recipeTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    _ui->nutrientsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     _ui->startDateEdit->setDate(QDate::currentDate());
 
@@ -95,7 +100,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ui->deleteRationButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteRationClick(bool)));
     connect(_ui->addAnimalNutritionReqButton, SIGNAL(clicked(bool)), this , SLOT(onAddAnimalNutritionReqClick(bool)));
     connect(_ui->deleteAnimalNutritionReqButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteAnimalNutritionReqClick(bool)));
+    connect(_ui->recipeAddButton, SIGNAL(clicked(bool)), this, SLOT(onAddRecipeClick(bool)));
+    connect(_ui->recipeDeleteButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteRecipeClick(bool)));
+    connect(_ui->addNutrientButton, SIGNAL(clicked(bool)), this, SLOT(onAddNutrientClick(bool)));
+    connect(_ui->deleteNutrientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteNutrientClick(bool)));
     connect(_ui->calculatePushButton, SIGNAL(clicked(bool)), this, SLOT(onCalculateButtonClick(bool)));
+    connect(_ui->recipeTableView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&,const QModelIndex&)), this, SLOT(onRecipeSelectionChanged(const QModelIndex&,const QModelIndex&)));
 }
 
 MainWindow::~MainWindow(void)
@@ -149,20 +159,51 @@ bool MainWindow::_debugInit(void) {
 }
 
 bool MainWindow::_tableInit(void) {
+    delete _nutrientTable;
     delete _ingredientsTable;
-    _ingredientsTable = new IngredientsTable(this, _db);
+    delete _recipeTable;
+    delete _rationTable;
+    delete _animalNutritionReqTable;
+
+    _nutrientTable              = new NutrientTable(this, _db);
+    _ingredientsTable           = new IngredientsTable(this, _db);
+    _recipeTable                = new RecipeTable(this, _db);
+    _rationTable                = new RationTable(this, _db);
+    _animalNutritionReqTable    = new AnimalNutritionReqTable(this, _db);
+
+    _nutrientTable->setTable("Nutrients");
+    _nutrientTable->select();
+    _nutrientTable->insertHeaderData();
+    _nutrientTable->setIngredientsTable(_ingredientsTable);
+    _ui->nutrientsTableView->setModel(_nutrientTable);
+
+
     _ingredientsTable->setTable("Ingredients");
     _ingredientsTable->select();
+    _ingredientsTable->setNutrientTable(_nutrientTable);
     _ingredientsTable->insertHeaderData();
     _ui->ingredientsTableView->setModel(_ingredientsTable);
 
-    delete _rationTable;
-    _rationTable = new RationTable(this);
-    RationsTableDelegate::setIngredientsTable(_ingredientsTable);
-    _ui->rationCalculatorTableView->setModel(_rationTable);
 
-    delete _animalNutritionReqTable;
-    _animalNutritionReqTable = new AnimalNutritionReqTable(this, _db);
+
+    _recipeTable->setTable("Recipes");
+    _recipeTable->select();
+    _recipeTable->insertHeaderData();
+    _ui->recipeTableView->setModel(_recipeTable);
+
+
+
+    _rationTable->setTable("Rations");
+    _rationTable->select();
+    _rationTable->insertHeaderData();
+    RationsTableDelegate::setIngredientsTable(_ingredientsTable);
+   // _rationTable->setRelation(RationTable::COL_RECIPE, QSqlRelation("Recipes", "name", "name"));
+   // _rationTable->setRelation(RationTable::COL_INGREDIENT, QSqlRelation("Ingredients", "name", "name"));
+    //_ui->rationTableView->setModel(_rationTable);
+  //  _ui->rationTableView->setColumnHidden(RationTable::COL_RECIPE, true);
+    //_ui->rationTableView->setItemDelegate(new QSqlRelationalDelegate(_ui->rationTableView));
+
+
     _animalNutritionReqTable->setTable("AnimalNutritionReq");
     _animalNutritionReqTable->select();
     _animalNutritionReqTable->insertHeaderData();
@@ -171,7 +212,12 @@ bool MainWindow::_tableInit(void) {
     _ui->animalComboBox->setModelColumn(_animalNutritionReqTable, AnimalNutritionReqTable::COL_DESC);
     _ui->animalComboBox->populate();
 
+    _ui->recipeComboBox->setModelColumn(_recipeTable, RecipeTable::COL_NAME);
+    _ui->recipeComboBox->populate();
+
     connect(_ingredientsTable, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(onIngredientsDataChanged(QModelIndex,QModelIndex,QVector<int>)));
+
+    return true;
 }
 
 bool MainWindow::_dbInit(QString dbType) {
@@ -219,12 +265,59 @@ bool MainWindow::_dbInit(QString dbType) {
                    "p real,"
                    "vita real)"))
         {
-            qCritical() << "Create ingredients table query failed: " << query.lastError();
+            qCritical() << "Create Ingredients table query failed: " << query.lastError();
             success = false;
         } else {
-            dbgPrintf("Create ingredients table query succeeded!");
+            dbgPrintf("Create Ingredients table query succeeded!");
         }
     }
+
+
+    if(/*createNewDb || */!_db.tables().contains("Recipes")) {
+        QSqlQuery query;
+        if(!query.exec("create table Recipes"
+                  "(name varchar(" STRINGIFY_MACRO(RECIPE_NAME_SIZE) ") primary key "
+                       ")"))
+        {
+            qCritical() << "Create Recipes table query failed: " << query.lastError();
+            success = false;
+        } else {
+            dbgPrintf("Create Recipes table query succeeded!");
+        }
+    }
+
+    if(/*createNewDb || */!_db.tables().contains("Nutrients")) {
+        QSqlQuery query;
+        if(!query.exec("create table Nutrients"
+                  "(name varchar(" STRINGIFY_MACRO(NUTRIENT_NAME_SIZE) ") primary key "
+                       ")"))
+        {
+            qCritical() << "Create Nutrients table query failed: " << query.lastError();
+            success = false;
+        } else {
+            dbgPrintf("Create Nutrients table query succeeded!");
+        }
+    }
+
+    if(/*createNewDb || */!_db.tables().contains("Rations")) {
+        QSqlQuery query;
+        if(!query.exec("create table Rations"
+                  "(recipeName references Recipes(name),"
+                       "ingredientName references Ingredients(name), "
+                       "asfed real,"
+                       "cost real,"
+                       "weight real,"
+                       "costPerDay real,"
+                       "dm real"
+        ")"))
+        {
+            qCritical() << "Create Rations table query failed: " << query.lastError();
+            success = false;
+        } else {
+            dbgPrintf("Create Rations table query succeeded!");
+        }
+    }
+
 
     if(/*createNewDb || */!_db.tables().contains("AnimalNutritionReq")) {
         QSqlQuery query;
@@ -240,10 +333,10 @@ bool MainWindow::_dbInit(QString dbType) {
                   "phosphorus real,"
                   "vita real)"))
         {
-            qCritical() << "Create animalNutritionReq table query failed: " << query.lastError();
+            qCritical() << "Create AnimalNutritionReq table query failed: " << query.lastError();
             success = false;
         } else {
-            dbgPrintf("Create animalNutritionReq table query succeeded!");
+            dbgPrintf("Create AnimalNutritionReq table query succeeded!");
         }
     }
 
@@ -251,10 +344,15 @@ bool MainWindow::_dbInit(QString dbType) {
 }
 
 void MainWindow::closeEvent(QCloseEvent*/*event*/) {
+    bool needsCommit = false;
     dbgPrintf("Submitting any pending changes to DB on before exitting.");
-    if(_ingredientsTable->submitAll()) {
-        _db.commit();
-    }
+    needsCommit |= _ingredientsTable->submitAll();
+    needsCommit |= _animalNutritionReqTable->submitAll();
+    needsCommit |= _nutrientTable->submitAll();
+    needsCommit |= _rationTable->submitAll();
+    needsCommit |= _recipeTable->submitAll();
+
+    if(needsCommit) _db.commit();
 }
 
 void MainWindow::onAddIngredientClick(bool) {
@@ -310,21 +408,71 @@ void MainWindow::onDeleteAnimalNutritionReqClick(bool) {
 }
 
 void MainWindow::onAddRationClick(bool) {
-    _rationTable->insertRow(_rationTable->rowCount());
+#if 0
+    _rationTable->insertRows(_rationTable->rowCount(), 1);
+        if(_rationTable->submitAll()) {
+            _rationTable->database().commit();
+    }
+       // _rationTable->setFilter("recipeName = '" + recipeName + "'");
+        //_rationTable->select();
+#else
+    auto selectedIndices = _ui->recipeTableView->selectionModel()->selectedRows();
+    //Q_ASSERT(selectedIndices.size() == 1);
+    if(selectedIndices.size() >= 1) {
+        auto selected = selectedIndices[0];
+
+        if(selected.isValid()) {
+            QString recipeName = selected.data().toString();
+            qDebug() << "SELECTING " << recipeName;
+            //_rationTable->setFilter("recipeName = '" + recipeName + "'");
+            if(_rationTable->insertRows(_rationTable->rowCount(), 1)) {
+                if(_rationTable->submitAll()) {
+                    _rationTable->database().commit();
+                }
+                const auto& newIndex = _rationTable->index(_rationTable->rowCount()-1, RationTable::COL_RECIPE);
+                Q_ASSERT(newIndex.isValid());
+                _rationTable->setData(newIndex, recipeName);
+                _ui->rationTableView->scrollToBottom();
+
+                //_rationTable->setFilter("recipeName = '" + recipeName + "'");
+               // _rationTable->select();
+            } //else Q_ASSERT(false);
+        } else Q_ASSERT(false);
+    }
+#endif
 }
 
 void MainWindow::onDeleteRationClick(bool) {
+#if 0
     // check which row(s) is/are selected (if any)
-    QItemSelectionModel* select = _ui->rationCalculatorTableView->selectionModel();
+    QItemSelectionModel* select = _ui->rationTableView->selectionModel();
 
     QModelIndexList selectedRows = select->selectedRows();
     if(selectedRows.size()) {
         for(auto it: selectedRows) _rationTable->removeRows(it.row(), 1);
     } else {
-        QMessageBox::critical(this, "Delete Failed", "Please select at least one entire row for deletion.");
+        QMessageBox::critical(this, "Delete Fail8ed", "Please select at least one entire row for deletion.");
 
     }
+#else
+    // check which row(s) is/are selected (if any)
+    QItemSelectionModel *select = _ui->rationTableView->selectionModel();
+    if(!select) return;
 
+    QModelIndexList selectedRows = select->selectedRows();
+    if(selectedRows.size()) {
+
+        for(auto it: selectedRows) _rationTable->removeRows(it.row(), 1);
+        if(_rationTable->submitAll()) {
+            _rationTable->database().commit();
+        }
+        _rationTable->select();
+
+    } else {
+        QMessageBox::critical(this, "Delete from Rations Table Failed", "Please select at least one entire row for deletion.");
+
+    }
+#endif
 }
 
 void MainWindow::_validateCalculationInputs(void) {
@@ -423,10 +571,45 @@ void MainWindow::_clearCalculationTable(void) {
     }
 }
 
+void MainWindow::_updateTotalsTableRows(void) {
+    //Clear out previous dynamic rows from custom nutrients
+    int rows = _ui->nutritionalTotalsTableWidget->rowCount();
+    for(int i = rows-1; i >= IngredientsTable::COL_DYNAMIC; --i) {
+        _ui->nutritionalTotalsTableWidget->removeRow(i);
+    }
+
+    //Insert new dynamic rows from nutrients
+    rows = _nutrientTable->rowCount();
+    auto& tableWidget = _ui->nutritionalTotalsTableWidget;
+    for(int i = 0; i < rows; ++i) {
+        tableWidget->insertRow(tableWidget->rowCount());
+        tableWidget->setVerticalHeaderItem(tableWidget->rowCount()-1,
+                                           new QTableWidgetItem(_nutrientTable->data(_nutrientTable->index(i, NutrientTable::COL_NAME)).toString()));
+
+        QTableWidgetItem* item = new QTableWidgetItem();
+        item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+        item->setData(Qt::BackgroundRole, QColor(Qt::gray));
+        tableWidget->setItem(tableWidget->rowCount()-1,
+                             1,
+                             item);
+
+
+    }
+}
+
 void MainWindow::onCalculateButtonClick(bool) {
+    //validate selected RECIPE
+    //validate selected ANIMAL type
+
     _clearTotalsTable();
     _clearCalculationTable();
+
+    auto oldFilter = _rationTable->filter();
+    _rationTable->setFilter("recipeName = '" + _ui->recipeComboBox->currentText() + "'");
+    _rationTable->select();
+
     _validateCalculationInputs();
+    _updateTotalsTableRows();
 
     if(_errorList.size()) {
         _ui->nutritionalTotalsTableWidget->setEnabled(false);
@@ -435,6 +618,9 @@ void MainWindow::onCalculateButtonClick(bool) {
 
         int rows = _rationTable->rowCount();
         float totalNem = 0, totalNeg = 0, totalProtein = 0, totalCa = 0, totalPhosphorus = 0, totalVitA = 0;
+        const unsigned nutrientCount = _nutrientTable->rowCount();
+        float totalNutrients[nutrientCount];
+        memset(totalNutrients, 0.0f, sizeof(float)*_nutrientTable->rowCount());
 
         for (int i = 0; i < rows; i++) {
             Ration ration = _rationTable->rationFromRow(i);
@@ -448,6 +634,9 @@ void MainWindow::onCalculateButtonClick(bool) {
                 totalCa         += ingredient.ca;
                 totalPhosphorus += ingredient.p;
                 totalVitA       += ingredient.vita;
+                for(unsigned j = 0; j < ingredient.getNutrientCount(); ++j) {
+                    totalNutrients[j] += ingredient.getNutrientValue(j);
+                }
             }
         }
 
@@ -459,7 +648,6 @@ void MainWindow::onCalculateButtonClick(bool) {
         sprintf(totalCaString,          "%.2f", totalCa);
         sprintf(totalPhosphorusString,  "%.2f", totalPhosphorus);
         sprintf(totalVitAString,        "%.2f", totalVitA);
-
 
         auto createItem = [](QString label) {
             QTableWidgetItem* item = new QTableWidgetItem(label);
@@ -473,6 +661,13 @@ void MainWindow::onCalculateButtonClick(bool) {
         _ui->nutritionalTotalsTableWidget->setItem(3, 0, createItem(totalCaString));
         _ui->nutritionalTotalsTableWidget->setItem(4, 0, createItem(totalPhosphorusString));
         _ui->nutritionalTotalsTableWidget->setItem(5, 0, createItem(totalVitAString));
+
+        for(int j = 0; j < nutrientCount; ++j) {
+            char buff[200];
+            sprintf(buff, "%.2f", totalNutrients[j]);
+            _ui->nutritionalTotalsTableWidget->setItem(6+j, 0, createItem(buff));
+
+        }
 
         AnimalNutritionReq req = _animalNutritionReqTable->nutritionReqFromRow(_animalNutritionReqTable->rowFromDesc(_ui->animalComboBox->currentText()));
 
@@ -567,10 +762,16 @@ void MainWindow::onCalculateButtonClick(bool) {
             //compute and display sell date
             QDateTime sellDate = _ui->startDateEdit->dateTime().addDays(numDaysOnFeed);
             _ui->calculationResultTableWidget->setItem(6, 0, createItem(sellDate.date().toString()));
+
+
+
         } else {
             _ui->calculationResultTableWidget->setEnabled(false);
         }
     }
+
+    _rationTable->setFilter(oldFilter);
+    _rationTable->select();
 }
 
 void MainWindow::_printBuildInfo(void) {
@@ -728,4 +929,88 @@ void MainWindow::on_actionImport_triggered(void) {
 
     _dbInit();
     _tableInit();
+}
+
+void MainWindow::onAddRecipeClick(bool) {
+    _recipeTable->insertRows(_recipeTable->rowCount(), 1);
+    if(_recipeTable->submitAll()) {
+        _recipeTable->database().commit();
+    }
+
+}
+
+void MainWindow::onDeleteRecipeClick(bool) {
+    // check which row(s) is/are selected (if any)
+    QItemSelectionModel *select = _ui->recipeTableView->selectionModel();
+
+    QModelIndexList selectedRows = select->selectedRows();
+    if(selectedRows.size()) {
+
+        for(auto it: selectedRows) _recipeTable->removeRows(it.row(), 1);
+        if(_recipeTable->submitAll()) {
+            _recipeTable->database().commit();
+        }
+        _recipeTable->select();
+
+    } else {
+        QMessageBox::critical(this, "Delete from RecipeTable Failed", "Please select at least one entire row for deletion.");
+
+    }
+}
+
+void MainWindow::onRecipeSelectionChanged(const QModelIndex& selected, const QModelIndex& deselected) {
+#if 1
+    _ui->rationTableView->setModel(_rationTable);
+    _ui->rationTableView->setEnabled(selected.isValid());
+    _ui->rationTableView->setColumnHidden(RationTable::COL_RECIPE, true);
+
+    if(selected.isValid()) {
+        QString recipeName = selected.data().toString();
+        qDebug() << "SELECTING " << recipeName;
+        _rationTable->setFilter("recipeName = '" + recipeName + "'");
+
+        _rationTable->select();
+        _rationTable->insertHeaderData();
+    }
+#endif
+}
+
+void MainWindow::onAddNutrientClick(bool) {
+    _nutrientTable->insertRows(_nutrientTable->rowCount(), 1);
+
+    int num = 0;
+    char nameBuff[NUTRIENT_NAME_SIZE];
+    do {
+        sprintf(nameBuff, "New_Nutrient_%d", ++num);
+    } while(_nutrientTable->rowFromName(nameBuff) != -1);
+
+    const auto& newIndex = _nutrientTable->index(_nutrientTable->rowCount()-1, NutrientTable::COL_NAME);
+    Q_ASSERT(newIndex.isValid());
+    _nutrientTable->setData(newIndex, QString(nameBuff));
+    if(_nutrientTable->submitAll()) {
+        _nutrientTable->database().commit();
+    }
+    _ingredientsTable->addSqlColumn(nameBuff, "real");
+
+}
+
+void MainWindow::onDeleteNutrientClick(bool) {
+    // check which row(s) is/are selected (if any)
+    QItemSelectionModel *select = _ui->nutrientsTableView->selectionModel();
+
+    QModelIndexList selectedRows = select->selectedRows();
+    if(selectedRows.size()) {
+
+        for(auto it: selectedRows) {
+            _ingredientsTable->dropSqlColumn(it.data().toString());
+            _nutrientTable->removeRows(it.row(), 1);
+        }
+        if(_nutrientTable->submitAll()) {
+            _nutrientTable->database().commit();
+        }
+        _nutrientTable->select();
+
+    } else {
+        QMessageBox::critical(this, "Delete from NutrientTable Failed", "Please select at least one entire row for deletion.");
+    }
 }

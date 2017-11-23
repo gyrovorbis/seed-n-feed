@@ -48,7 +48,9 @@ SOURCES += \
     source/ui/mainwindow.cpp \
     source/model/sql_table.cpp \
     source/ui/sql_table_view.cpp \
-    source/core/tk_menu_stack.cpp
+    source/core/tk_menu_stack.cpp \
+    source/model/recipe_table.cpp \
+    source/model/nutrient_table.cpp
 
 HEADERS += \
         include/model/ingredients_table.h \
@@ -65,8 +67,15 @@ HEADERS += \
     include/ui/mainwindow.h \
     include/model/sql_table.h \
     include/ui/sql_table_view.h \
-    include/core/tk_menu_stack.h
+    include/core/tk_menu_stack.h \
+    include/model/recipe_table.h \
+    include/model/nutrient_table.h
 
 FORMS += \
         form/error_warning_dialog.ui \
     form/mainwindow.ui
+
+RESOURCES += \
+    resource/resource.qrc
+
+DISTFILES +=

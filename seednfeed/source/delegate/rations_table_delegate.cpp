@@ -39,6 +39,9 @@ QWidget* RationsTableDelegate::createEditor(QWidget *parent, const QStyleOptionV
 
             return comboBox;
         }
+        case RationTable::COL_DM:
+        case RationTable::COL_COST_PER_DAY:
+            return nullptr;
         default: {
             QLineEdit *lineEdit = new QLineEdit(parent);
             lineEdit->setValidator(new QDoubleValidator(0.01, std::numeric_limits<double>::max(), DOUBLE_VALIDATOR_DECIMALS_MAX));
@@ -94,7 +97,7 @@ void RationsTableDelegate::_updateReadOnlyColumns(QAbstractItemModel* model, con
             rationTable->setData(rationTable->index(index.row(), RationTable::COL_DM), dm);
         }
 
-    }
+    } //else Q_ASSERT(false);
 
 
 }

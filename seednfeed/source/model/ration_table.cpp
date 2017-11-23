@@ -3,21 +3,14 @@
 #include "core/utilities.h"
 #include <QDebug>
 
-RationTable::RationTable(QObject* parent): QStandardItemModel(parent)
+RationTable::RationTable(QObject* parent, QSqlDatabase db):
+    QSqlTableModel(parent, db)
 {
-    setColumnCount(6);
-    setHeaderData(COL_INGREDIENT,       Qt::Horizontal, "Ingredient");
-    setHeaderData(COL_AS_FED,           Qt::Horizontal, "As fed, lbs");
-    setHeaderData(COL_COST_PER_UNIT,    Qt::Horizontal, "Cost, $/Unit");
-    setHeaderData(COL_WEIGHT,           Qt::Horizontal, "Weight, lbs/Unit");
-    setHeaderData(COL_COST_PER_DAY,     Qt::Horizontal, "Cost/day");
-    setHeaderData(COL_DM,               Qt::Horizontal, "DM, lbs");
+    setEditStrategy(QSqlTableModel::OnFieldChange);
 }
 
 Qt::ItemFlags RationTable::flags(const QModelIndex &index) const {
-    Qt::ItemFlags flags = (Qt::ItemIsEnabled|Qt::ItemIsSelectable);
-    if(index.column() <= 3) flags |= Qt::ItemIsEditable;
-    return flags;
+    return (Qt::ItemIsEnabled|Qt::ItemIsSelectable|Qt::ItemIsEditable);
 }
 
 
@@ -70,10 +63,21 @@ QVariant RationTable::data(const QModelIndex &index, int role) const {
         default: break;
         }
     default:
-        return QStandardItemModel::data(index, role);
+        return QSqlTableModel::data(index, role);
 
     }
 }
+
+void RationTable::insertHeaderData(void) {
+    setHeaderData(COL_RECIPE,           Qt::Horizontal, "Recipe");
+    setHeaderData(COL_INGREDIENT,       Qt::Horizontal, "Ingredient");
+    setHeaderData(COL_AS_FED,           Qt::Horizontal, "As fed, lbs");
+    setHeaderData(COL_COST_PER_UNIT,    Qt::Horizontal, "Cost, $/Unit");
+    setHeaderData(COL_WEIGHT,           Qt::Horizontal, "Weight, lbs/Unit");
+    setHeaderData(COL_COST_PER_DAY,     Qt::Horizontal, "Cost/day");
+    setHeaderData(COL_DM,               Qt::Horizontal, "DM, lbs");
+}
+
 
 int Ration::validate(QStringList& detailedText) const {
     int errors = 0;
@@ -95,3 +99,5 @@ int Ration::validate(QStringList& detailedText) const {
     return errors;
 
 }
+
+

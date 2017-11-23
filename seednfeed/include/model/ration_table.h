@@ -2,14 +2,17 @@
 #define RATION_TABLE_H
 
 #include <QString>
-#include <QStandardItemModel>
+#include <QSqlTableModel>
 #include "ingredients_table.h"
+#include "recipe_table.h"
 
 #define RATION_ITEM_TYPE_SIZE   50
 
 struct Ration {
     bool    ingredientValid = false;
     char    ingredient[INGREDIENT_NAME_SIZE];
+    bool    recipeValid     = false;
+    char    recipe[RECIPE_NAME_SIZE];
     bool    asFedValid = false;
     float   asFed;
     bool    costPerUnitValid = false;
@@ -24,10 +27,11 @@ struct Ration {
     int validate(QStringList& detailedText) const;
 };
 
-class RationTable : public QStandardItemModel {
+class RationTable : public QSqlTableModel {
 
 public:
     enum COLUMNS {
+        COL_RECIPE,
         COL_INGREDIENT,
         COL_AS_FED,
         COL_COST_PER_UNIT,
@@ -36,9 +40,11 @@ public:
         COL_DM
     };
 
-                            RationTable(QObject* parent=nullptr);
+                            RationTable(QObject* parent, QSqlDatabase db);
     virtual Qt::ItemFlags   flags(const QModelIndex &index) const override;
     virtual QVariant        data(const QModelIndex &index, int role) const override;
+
+    void                    insertHeaderData(void);
 
     Ration                  rationFromRow(int row);
 
