@@ -38,7 +38,15 @@ void SqlTableView::onCustomContextMenu(const QPoint& point) {
     menu.pop();
 
     menu.push("Import from CSV");
-    menu.insertAction("Entire Table", [&](bool){}, false);
+    menu.insertAction("Entire Table", [&](bool){
+        QString fileName = QFileDialog::getOpenFileName(this, "Save File", QDir::current().absolutePath(), "Spreadsheet (CSV) File (*.csv)");
+
+        if(fileName.isNull() || fileName.isEmpty()) return;
+
+        SqlTableModel::importCSV(model(), fileName);
+
+
+    }, true);
     menu.insertAction("Append Rows", [&](bool){}, false);
     menu.pop();
 

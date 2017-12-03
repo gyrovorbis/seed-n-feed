@@ -53,7 +53,14 @@ void NutrientTable::setIngredientsTable(IngredientsTable* table) {
 bool NutrientTable::setData(const QModelIndex &index, const QVariant &value, int role) {
     if(index.column() == COL_NAME && role == Qt::EditRole) {
         QString oldValue = data(index).toString();
-        _ingredientsTable->renameSqlColumn(oldValue, value.toString());
+
+        //check whether we're renaming an existing column
+        if(!oldValue.isNull() && !oldValue.isEmpty()) {
+            //check whether or not rename was successful
+            if(!_ingredientsTable->renameSqlColumn(oldValue, value.toString())) {
+                return false;
+            }
+        }
     }
 
     return SqlTableModel::setData(index, value, role);

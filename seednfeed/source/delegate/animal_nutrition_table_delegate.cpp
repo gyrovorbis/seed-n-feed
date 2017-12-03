@@ -69,7 +69,7 @@ void AnimalNutritionTableDelegate::paint(QPainter *painter, const QStyleOptionVi
         case AnimalNutritionReqTable::COL_TYPE: {
             bool ok;
             int typeVal = index.data(Qt::EditRole).toInt(&ok);
-            if(!ok || typeVal >= ANIMAL_TYPE_COUNT) {
+            if(/*!ok || */typeVal >= ANIMAL_TYPE_COUNT) {
                 qCritical() << "Invalid AnimalNutritionReq::TYPE " << typeVal;
             } else {
                 itemOption.text = AnimalNutritionReqTable::builtinEnergyTable[typeVal].info;

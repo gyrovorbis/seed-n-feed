@@ -90,6 +90,7 @@ Ingredient IngredientsTable::ingredientFromRow(int row) {
     Ingredient ingredient(_nutrientTable->rowCount());
 
     if(row < rowCount()) {
+        qDebug() << "Ingredient[" << row << "]";
         auto name = index(row, COL_NAME).data().toString();
         if(name.isEmpty() || name.isNull()) {
             ingredient.name[0] = '\0';
@@ -110,8 +111,10 @@ Ingredient IngredientsTable::ingredientFromRow(int row) {
 
         for(int i = 0; i < _nutrientTable->rowCount(); ++i) {
             bool valid;
-            ingredient.setNutrientValue(i, index(i, COL_DYNAMIC+i).data().toFloat(&valid));
+            float val = index(row, COL_DYNAMIC+i).data().toFloat(&valid);
+            ingredient.setNutrientValue(i, val);
             ingredient.setNutrientValid(i, valid);
+                        qDebug() << "INGR[" << i << "] - " << val;
         }
 
     } else {

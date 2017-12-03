@@ -1,9 +1,27 @@
 #include "delegate/duplicate_column_model_validator.h"
 #include <QAbstractItemModel>
 
-DuplicateColumnModelValidator::DuplicateColumnModelValidator(int col, const QAbstractItemModel* model):
+//===== STATICS =====
+
+constexpr const char DuplicateColumnModelValidator::_invalidSqlChars[];
+
+bool DuplicateColumnModelValidator::validateSqlName(QString input) {
+    for(unsigned i = 0; i < sizeof(_invalidSqlChars); ++i) {
+        if(input.contains(_invalidSqlChars[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+//===== NONSTATIC =====
+
+
+DuplicateColumnModelValidator::DuplicateColumnModelValidator(int col, const QAbstractItemModel* model, bool sqlValidation):
     _column(col),
-    _model(model)
+    _model(model),
+    _sqlValidation(sqlValidation)
 {}
 
 QValidator::State DuplicateColumnModelValidator::validate(QString &input, int& /*pos*/) const {
@@ -17,7 +35,14 @@ QValidator::State DuplicateColumnModelValidator::validate(QString &input, int& /
                 return QValidator::Intermediate;
             }
         }
+
+        if(_sqlValidation && !validateSqlName(input)) return QValidator::Invalid;
     }
     return QValidator::Acceptable;
+}
 
+
+
+void DuplicateColumnModelValidator::setSqlValidationEnabled(bool val) {
+    _sqlValidation = val;
 }

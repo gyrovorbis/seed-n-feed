@@ -34,6 +34,8 @@ struct AnimalNutritionReq {
     float   weight;
     bool    dailyGainValid = false;
     float   dailyGain;
+    bool    dmiValid = false;
+    float   dmi;
     bool    proteinValid = false;
     float   protein;
     bool    nemValid = false;
@@ -50,8 +52,7 @@ struct AnimalNutritionReq {
     int validate(QStringList& detailedText) const;
 };
 
-class AnimalNutritionReqTable : public QSqlTableModel
-{
+class AnimalNutritionReqTable : public QSqlTableModel {
 public:
 
     enum COLUMNS {
@@ -59,9 +60,10 @@ public:
         COL_TYPE,
         COL_WEIGHT,
         COL_DAILYGAIN,
-        COL_PROTEIN,
+        COL_DMI,
         COL_NEM,
         COL_NEG,
+        COL_PROTEIN,
         COL_CALCIUM,
         COL_PHOSPHORUS,
         COL_VITA

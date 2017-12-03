@@ -22,7 +22,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="calculatorTab">
        <attribute name="title">
@@ -40,36 +40,6 @@
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="10" column="2">
-             <widget class="QSpinBox" name="expectedEndorsementLengthSpinBox">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>Start Date:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="9" column="2">
-             <widget class="QDoubleSpinBox" name="finishedWeightDoubleSpinBox">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="maximum">
-               <double>2000.000000000000000</double>
-              </property>
-             </widget>
-            </item>
             <item row="6" column="1">
              <widget class="QLabel" name="label">
               <property name="text">
@@ -77,20 +47,25 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="2">
-             <widget class="QSpinBox" name="totalHeadSpinBox">
+            <item row="0" column="2">
+             <widget class="DynamicModelColumnComboBox" name="animalComboBox">
+              <property name="currentText">
+               <string/>
+              </property>
+              <item>
+               <property name="text">
+                <string/>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QDateEdit" name="startDateEdit">
               <property name="maximumSize">
                <size>
                 <width>100</width>
                 <height>16777215</height>
                </size>
-              </property>
-             </widget>
-            </item>
-            <item row="10" column="1">
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>Expected Endorsement Length, Wks: (Optional)</string>
               </property>
              </widget>
             </item>
@@ -114,27 +89,13 @@
               </property>
              </widget>
             </item>
-            <item row="9" column="1">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Finished (Slaughter) Weight, lbs:</string>
-              </property>
-             </widget>
+            <item row="1" column="2">
+             <widget class="DynamicModelColumnComboBox" name="recipeComboBox"/>
             </item>
             <item row="5" column="1">
              <widget class="QLabel" name="label_3">
               <property name="text">
                <string>Total Head:  (Optional)</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="2">
-             <widget class="QDateEdit" name="startDateEdit">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
               </property>
              </widget>
             </item>
@@ -145,8 +106,38 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Recipe:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="2">
+             <widget class="QSpinBox" name="totalHeadSpinBox">
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>Start Date:</string>
+              </property>
+             </widget>
+            </item>
             <item row="6" column="2">
              <widget class="QDoubleSpinBox" name="currentBodyWeightSpinBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>100</width>
@@ -156,34 +147,6 @@
               <property name="maximum">
                <double>2000.000000000000000</double>
               </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="DynamicModelColumnComboBox" name="animalComboBox">
-              <property name="currentText">
-               <string>SELECT</string>
-              </property>
-              <item>
-               <property name="text">
-                <string>SELECT</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Recipe:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="DynamicModelColumnComboBox" name="recipeComboBox">
-              <item>
-               <property name="text">
-                <string>SELECT</string>
-               </property>
-              </item>
              </widget>
             </item>
            </layout>
@@ -288,6 +251,11 @@
             </property>
             <row>
              <property name="text">
+              <string>DMI (lb/day)</string>
+             </property>
+            </row>
+            <row>
+             <property name="text">
               <string>NEm (Mcal/day)</string>
              </property>
             </row>
@@ -298,22 +266,17 @@
             </row>
             <row>
              <property name="text">
-              <string>Protein (g/day)</string>
+              <string>Protein (lb/day)</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Calcium (g/day)</string>
+              <string>Calcium (lb/day)</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Phosphorus (g/day)</string>
-             </property>
-            </row>
-            <row>
-             <property name="text">
-              <string>Vitamin A (g/day)</string>
+              <string>Phosphorus (lb/day)</string>
              </property>
             </row>
             <column>
@@ -326,7 +289,7 @@
               <string>Nutritional Requirements Met?</string>
              </property>
             </column>
-            <item row="0" column="0">
+            <item row="1" column="0">
              <property name="text">
               <string/>
              </property>
@@ -398,6 +361,12 @@
           </item>
           <item>
            <widget class="QTableView" name="recipeTableView">
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustToContents</enum>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
             <property name="selectionMode">
              <enum>QAbstractItemView::SingleSelection</enum>
             </property>
@@ -467,7 +436,17 @@
            </layout>
           </item>
           <item>
-           <widget class="QTableView" name="rationTableView"/>
+           <widget class="QTableView" name="rationTableView">
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustToContents</enum>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -523,12 +502,27 @@
         </item>
         <item>
          <widget class="SqlTableView" name="ingredientsTableView">
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <property name="autoScroll">
+           <bool>false</bool>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::SingleSelection</enum>
           </property>
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
          </widget>
         </item>
        </layout>
@@ -583,6 +577,12 @@
         </item>
         <item>
          <widget class="SqlTableView" name="animalNutritionReqTableView">
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::SingleSelection</enum>
           </property>
@@ -642,7 +642,20 @@
          </layout>
         </item>
         <item>
-         <widget class="SqlTableView" name="nutrientsTableView"/>
+         <widget class="SqlTableView" name="nutrientsTableView">
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <property name="autoScroll">
+           <bool>false</bool>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <attribute name="verticalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -674,6 +687,7 @@
      </property>
      <addaction name="actionImport"/>
      <addaction name="actionExport"/>
+     <addaction name="actionUse_Default"/>
     </widget>
     <addaction name="menuDatabase"/>
    </widget>
@@ -697,6 +711,11 @@
   <action name="actionExport">
    <property name="text">
     <string>Export</string>
+   </property>
+  </action>
+  <action name="actionUse_Default">
+   <property name="text">
+    <string>Use Default</string>
    </property>
   </action>
  </widget>

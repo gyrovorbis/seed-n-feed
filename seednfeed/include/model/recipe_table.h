@@ -1,7 +1,7 @@
 #ifndef RECIPE_TABLE_H
 #define RECIPE_TABLE_H
 
-#include <QSqlTableModel>
+#include "model/sql_table.h"
 
 #define RECIPE_NAME_SIZE    50
 
@@ -13,7 +13,7 @@ struct Recipe {
     int validate(QStringList& detailedText) const;
 };
 
-class RecipeTable : public QSqlTableModel {
+class RecipeTable : public SqlTableModel {
 public:
 
     enum COLUMNS {

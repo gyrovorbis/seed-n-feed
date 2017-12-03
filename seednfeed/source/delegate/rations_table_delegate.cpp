@@ -22,12 +22,12 @@ RationsTableDelegate::RationsTableDelegate(QObject *parent):
 QWidget* RationsTableDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &/*option*/, const QModelIndex &index) const {
     switch(index.column()) {
         case RationTable::COL_INGREDIENT: {
+            const auto* rationTable = static_cast<const RationTable*>(index.model());
+            QStringList stringList = rationTable->getUnusedIngredientsList();
+            QString prevValue = index.data().toString();
+            if(!prevValue.isNull() && !prevValue.isEmpty()) stringList.push_back(prevValue);
             QComboBox* comboBox = new QComboBox(parent);
             //comboBox->setEditable(true);
-
-            int rows = ingredientsTable->rowCount();
-            QStringList stringList;
-            for(int i = 0; i < rows; ++i) stringList.append(ingredientsTable->index(i, 0).data().toString());
 
             for(auto&& it : stringList) {
                 comboBox->addItem(it, it);

@@ -4,11 +4,13 @@
 #include <QMainWindow>
 #include <QSqlDatabase>
 #include <QDir>
+#include <QVariant>
 
 #define DATABASE_NAME      "seed_and_feed.db"
 #define DATABASE_TYPE      "QSQLITE"
 #define DEBUG_LOG_NAME     "debug_log.txt"
 #define USER_DIR_NAME      "seednfeed"
+#define DEFAULT_DB_PATH     ":/defaults.db"
 
 class QToolButton;
 class QAbstractItemModel;
@@ -72,6 +74,8 @@ private:
     void                _clearCalculationTable(void);
     void                _initStatusBar(void);
     void                _updateTotalsTableRows(void);
+    bool                _importDb(QString filepath);
+    bool                _loadDefaultDatabase(void);
 
     static void         logQ(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static void         dbgPrintf(const char* str, ...);
@@ -87,6 +91,7 @@ private slots:
     void                onAddRecipeClick(bool);
     void                onDeleteRecipeClick(bool);
     void                onRecipeSelectionChanged(const QModelIndex& selected, const QModelIndex& deselected);
+    void                onRecipeValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int editRole);
 
     void                onAddRationClick(bool);
     void                onDeleteRationClick(bool);
@@ -94,12 +99,12 @@ private slots:
     void                onAddAnimalNutritionReqClick(bool);
     void                onDeleteAnimalNutritionReqClick(bool);
 
-    void                onIngredientsDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles);
     void                onCalculateButtonClick(bool);
-
+    void                onAnimalComboBoxChange(QString text);
 
     void                on_actionExport_triggered();
     void                on_actionImport_triggered();
+    void on_actionUse_Default_triggered();
 };
 
 #endif // MAINWINDOW_H

@@ -3,7 +3,7 @@
 #include <QDebug>
 
 RecipeTable::RecipeTable(QObject *parent, QSqlDatabase database):
-           QSqlTableModel(parent, database)
+           SqlTableModel(parent, database)
 {
     setEditStrategy(QSqlTableModel::OnFieldChange);
 }

@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>feedIco.png</file>
+        <file>defaults.db</file>
     </qresource>
 </RCC>

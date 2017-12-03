@@ -43,13 +43,40 @@ bool SqlTableModel::exportCSV(const QAbstractItemModel* model, QString filePath)
      } else {
 
          qCritical() << "File could not be opened for writing: " << filePath;
+         qCritical() << csvFile.errorString();
          return false;
      }
 }
 
 
 bool SqlTableModel::importCSV(QAbstractItemModel* model, QString filePath) {
-    return false;
+     QFile csvFile(filePath);
+
+     // Open or create the file if it does not exist
+     if(csvFile.open( QIODevice::ReadOnly ))
+     {
+        model->removeRows(0, model->rowCount());
+
+        //basically blow everything the fuck away first!!!!
+
+        while(!csvFile.atEnd()) {
+            QByteArray line = csvFile.readLine();
+            QList<QByteArray> stringList = line.split(',');
+            model->insertRows(model->rowCount(), 1);
+            int row = model->rowCount() - 1;
+            for(int i = 0; i < stringList.size(); ++i) {
+                model->setData(model->index(row, i), stringList[i]);
+            }
+        }
+
+         csvFile.close();
+         return true;
+     } else {
+
+         qCritical() << "File could not be opened for reading: " << filePath;
+         qCritical() << csvFile.errorString();
+         return false;
+     }
 }
 
 bool SqlTableModel::exportCSV(QString filePath) const {
@@ -61,6 +88,9 @@ bool SqlTableModel::importCSV(QString filePath) {
 }
 
 void SqlTableModel::forceReloadModel(void) {
+    //QString name = tableName();
+    //setTable("");
+    //clear();
     setTable(tableName());
     select();
 }
@@ -167,6 +197,8 @@ bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
     }
 
     QStringList srcColumnNames = getColumnNames();
+    for(auto& str: srcColumnNames) str = QString("\"") + str + QString("\"");
+    newName = QString("\"") + newName + QString("\"");
     if(remove) srcColumnNames.removeAt(column);
     QStringList dstColumnNames = srcColumnNames;
     if(!remove) dstColumnNames.replace(column, newName);
@@ -198,10 +230,11 @@ bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
     }
 
     if(!queryFailed) {
-        if(submitAll()) {
+        //if(submitAll()) {
+        submitAll();
             database().commit();
-            forceReloadModel();
-        }
+        //}
+        forceReloadModel();
         if(remove)  qDebug() << "Successfully dropped column" << oldName << "from the" << tableName() << "database table!";
         else        qDebug() << "Successfully renamed column" << oldName << "from the" << tableName() << "database table to" << newName;
         return true;
@@ -243,6 +276,39 @@ QStringList SqlTableModel::getColumnNames(void) const {
     }
     return colNames;
 }
+
+bool SqlTableModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+    QVariant oldVal = index.data(role);
+    if(QSqlTableModel::setData(index, value, role)) {
+        emit cellDataChanged(index.row(), index.column(), oldVal, value, role);
+        return true;
+    } else return false;
+}
+
+bool SqlTableModel::pushFilter(QString string) {
+    _filterStack.push(filter());
+    setFilter(string);
+    return select();
+}
+
+bool SqlTableModel::popFilter(void) {
+    Q_ASSERT(_filterStack.size());
+    QString filterStr = _filterStack.pop();
+    setFilter(filterStr);
+    return select();
+}
+
+unsigned SqlTableModel::updateColumnValues(int col, QVariant oldVal, QVariant newVal, int role) {
+    int updatedCount = 0;
+    for(int r = 0; r < rowCount(); ++r) {
+        auto indexRef = index(r, col);
+        if(indexRef.data(role) == oldVal) {
+            updatedCount += setData(indexRef, newVal, role);
+        }
+    }
+    return updatedCount;
+}
+
 
 //create a list of column names/types
 //automatically handle create new table SQL query given parameters

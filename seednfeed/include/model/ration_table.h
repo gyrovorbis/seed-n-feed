@@ -2,11 +2,13 @@
 #define RATION_TABLE_H
 
 #include <QString>
-#include <QSqlTableModel>
+#include "model/sql_table.h"
 #include "ingredients_table.h"
 #include "recipe_table.h"
 
 #define RATION_ITEM_TYPE_SIZE   50
+
+class IngredientsTable;
 
 struct Ration {
     bool    ingredientValid = false;
@@ -27,8 +29,11 @@ struct Ration {
     int validate(QStringList& detailedText) const;
 };
 
-class RationTable : public QSqlTableModel {
-
+class RationTable : public SqlTableModel {
+    Q_OBJECT
+protected:
+    IngredientsTable*       _ingredientsTable = nullptr;
+    RecipeTable*            _recipeTable      = nullptr;
 public:
     enum COLUMNS {
         COL_RECIPE,
@@ -44,12 +49,26 @@ public:
     virtual Qt::ItemFlags   flags(const QModelIndex &index) const override;
     virtual QVariant        data(const QModelIndex &index, int role) const override;
 
+
+    bool                    tryAppendRow(void);
     void                    insertHeaderData(void);
 
     Ration                  rationFromRow(int row);
 
+    QStringList             getUnusedIngredientsList(void) const;
+
     //returns number of affected/updated rows
-    unsigned                ingredientDMChanged(QString ingredientName);
+    unsigned                _ingredientDMChanged(QString ingredientName);
+    unsigned                _ingredientNameChanged(QString oldName, QString newName);
+    unsigned                _recipeNameChanged(QString oldName, QString newName);
+
+    void                    setIngredientsTable(IngredientsTable* table);
+    void                    setRecipeTable(RecipeTable* table);
+
+private slots:
+    void                    onIngredientsDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles);
+    void                    onIngredientsCellValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role);
+    void                    onRecipeCellValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role);
 };
 
 #endif // RATION_TABLE_H

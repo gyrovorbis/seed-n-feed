@@ -51,13 +51,14 @@ void AnimalNutritionReqTable::insertHeaderData(void) {
     setHeaderData(COL_DESC,         Qt::Horizontal, "Description");
     setHeaderData(COL_TYPE,         Qt::Horizontal, "Type");
     setHeaderData(COL_WEIGHT,       Qt::Horizontal, "Weight (lb)");
-    setHeaderData(COL_DAILYGAIN,    Qt::Horizontal, "Daily Gain (lb)");
-    setHeaderData(COL_PROTEIN,      Qt::Horizontal, "Protein (g/day)");
+    setHeaderData(COL_DAILYGAIN,    Qt::Horizontal, "Daily Gain (lb/day)");
+    setHeaderData(COL_DMI,          Qt::Horizontal, "Dry Matter Intake (lb/day)");
     setHeaderData(COL_NEM,          Qt::Horizontal, "NEm (MCal/day)");
     setHeaderData(COL_NEG,          Qt::Horizontal, "NEg (MCal/day");
+    setHeaderData(COL_PROTEIN,      Qt::Horizontal, "Protein (g/day)");
     setHeaderData(COL_CALCIUM,      Qt::Horizontal, "Calcium (g/day)");
     setHeaderData(COL_PHOSPHORUS,   Qt::Horizontal, "Phosphorus (g/day)");
-    setHeaderData(COL_VITA,         Qt::Horizontal, "VitA (g/day)");
+  //  setHeaderData(COL_VITA,         Qt::Horizontal, "VitA (g/day)");
 }
 
 AnimalNutritionReq AnimalNutritionReqTable::nutritionReqFromRow(int row) {
@@ -77,12 +78,13 @@ AnimalNutritionReq AnimalNutritionReqTable::nutritionReqFromRow(int row) {
         req.type        = index(row, COL_TYPE).data().toInt(&req.typeValid);
         req.weight      = index(row, COL_WEIGHT).data().toFloat(&req.weightValid);
         req.dailyGain   = index(row, COL_DAILYGAIN).data().toFloat(&req.dailyGainValid);
+        req.dmi         = index(row, COL_DMI).data().toFloat(&req.dmiValid);
         req.protein     = index(row, COL_PROTEIN).data().toFloat(&req.proteinValid);
         req.nem         = index(row, COL_NEM).data().toFloat(&req.nemValid);
         req.neg         = index(row, COL_NEG).data().toFloat(&req.negValid);
         req.calcium     = index(row, COL_CALCIUM).data().toFloat(&req.calciumValid);
         req.phosphorus  = index(row, COL_PHOSPHORUS).data().toFloat(&req.phosphorusValid);
-        req.vita        = index(row, COL_VITA).data().toFloat(&req.vitaValid);
+        //req.vita        = index(row, COL_VITA).data().toFloat(&req.vitaValid);
 
     } else {
         qCritical() << "Requesting invalid AnimalNutritionReqTable row index: " << row;
@@ -90,6 +92,7 @@ AnimalNutritionReq AnimalNutritionReqTable::nutritionReqFromRow(int row) {
 
     return req;
 }
+
 
 int AnimalNutritionReqTable::rowFromDesc(QString desc) {
     for(int r = 0; r < rowCount(); ++r) {
@@ -113,13 +116,14 @@ int AnimalNutritionReq::validate(QStringList& detailedText) const {
    validateField(descValid,         "Description");
    validateField(typeValid,         "Type");
    validateField(weightValid,       "Weight (lb)");
-   validateField(dailyGainValid,    "Daily Gain (lb)");
+   validateField(dailyGainValid,    "Avg Daily Gain (lb)");
+   validateField(dmiValid,          "Dry Matter Intake (lb/day)");
    validateField(proteinValid,      "Protein (g/day)");
    validateField(nemValid,          "NeM (MCal/day)");
    validateField(negValid,          "NeG (MCal/day)");
    validateField(calciumValid,      "Calcium (g/day)");
    validateField(phosphorusValid,   "Phosphorus (g/day)");
-   validateField(vitaValid,         "Vitamin A (g/day)");
+   //validateField(vitaValid,         "Vitamin A (g/day)");
 
     return errors;
 
