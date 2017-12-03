@@ -109,8 +109,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ui->addNutrientButton, SIGNAL(clicked(bool)), this, SLOT(onAddNutrientClick(bool)));
     connect(_ui->deleteNutrientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteNutrientClick(bool)));
     connect(_ui->calculatePushButton, SIGNAL(clicked(bool)), this, SLOT(onCalculateButtonClick(bool)));
-    connect(_ui->recipeTableView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&,const QModelIndex&)), this, SLOT(onRecipeSelectionChanged(const QModelIndex&,const QModelIndex&)));
-    connect(_recipeTable, SIGNAL(cellDataChanged(int,int,QVariant,QVariant,int)), this, SLOT(onRecipeValueChanged(int,int,QVariant,QVariant,int)));
     connect(_ui->animalComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onAnimalComboBoxChange(QString)));
 
 }
@@ -197,12 +195,15 @@ bool MainWindow::_tableInit(void) {
     _recipeTable->insertHeaderData();
     _ui->recipeTableView->setModel(_recipeTable);
 
-    _rationTable->setTable("Rations");
-    _rationTable->select();
-    _rationTable->insertHeaderData();
+
     RationsTableDelegate::setIngredientsTable(_ingredientsTable);
     _rationTable->setIngredientsTable(_ingredientsTable);
     _rationTable->setRecipeTable(_recipeTable);
+    _ui->rationTableView->setModel(_rationTable);
+    _rationTable->setTable("Rations");
+    //_rationTable->select();
+    //_rationTable->insertHeaderData();
+
    // _rationTable->setRelation(RationTable::COL_RECIPE, QSqlRelation("Recipes", "name", "name"));
    // _rationTable->setRelation(RationTable::COL_INGREDIENT, QSqlRelation("Ingredients", "name", "name"));
     //_ui->rationTableView->setModel(_rationTable);
@@ -220,6 +221,9 @@ bool MainWindow::_tableInit(void) {
     onAnimalComboBoxChange("FUCKING UPDATE!!!");
     _ui->recipeComboBox->setSrcModelColumn(_recipeTable, RecipeTable::COL_NAME);
     _ui->recipeComboBox->populate();
+
+    connect(_recipeTable, SIGNAL(cellDataChanged(int,int,QVariant,QVariant,int)), this, SLOT(onRecipeValueChanged(int,int,QVariant,QVariant,int)));
+    connect(_ui->recipeTableView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&,const QModelIndex&)), this, SLOT(onRecipeSelectionChanged(const QModelIndex&,const QModelIndex&)));
 
     return true;
 }
@@ -948,8 +952,8 @@ void MainWindow::onDeleteRecipeClick(bool) {
         }
         _recipeTable->select();
 
-        _rationTable->setFilter("recipeName=''");
-        _rationTable->select();
+        //_rationTable->setFilter("recipeName=''");
+        //_rationTable->select();
 
     } else {
         QMessageBox::critical(this, "Delete from RecipeTable Failed", "Please select at least one entire row for deletion.");
@@ -958,18 +962,19 @@ void MainWindow::onDeleteRecipeClick(bool) {
 }
 
 void MainWindow::onRecipeSelectionChanged(const QModelIndex& selected, const QModelIndex& deselected) {
-    _ui->rationTableView->setEnabled(selected.isValid());
+    //_ui->rationTableView->setEnabled(selected.isValid());
+    _ui->rationTableView->setModel(_rationTable);
+    _rationTable->insertHeaderData();
+    _ui->rationTableView->setColumnHidden(RationTable::COL_RECIPE, true);
 
     if(selected.isValid()) {
-        _ui->rationTableView->setModel(_rationTable);
-        _rationTable->insertHeaderData();
-        _ui->rationTableView->setColumnHidden(RationTable::COL_RECIPE, true);
+
         QString recipeName = selected.data().toString();
         _rationTable->setFilter("recipeName = '" + recipeName + "'");
         _rationTable->select();
 
     } else {
-
+        qDebug() << "INFALIVD SHIT";
     }
 }
 
