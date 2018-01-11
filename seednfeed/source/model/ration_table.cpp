@@ -2,7 +2,7 @@
 #include "delegate/rations_table_delegate.h"
 #include "model/ingredients_table.h"
 #include "core/utilities.h"
-#include <QDebug>
+#include "ui/mainwindow.h"
 #include <QMessageBox>
 
 RationTable::RationTable(QObject* parent, QSqlDatabase db):
@@ -18,13 +18,13 @@ Qt::ItemFlags RationTable::flags(const QModelIndex& /*index*/) const {
 void RationTable::setIngredientsTable(IngredientsTable* table) {
     _ingredientsTable = table;
 
-    connect(_ingredientsTable, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(onIngredientsDataChanged(QModelIndex,QModelIndex,QVector<int>)));
+   // connect(_ingredientsTable, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(onIngredientsDataChanged(QModelIndex,QModelIndex,QVector<int>)));
     connect(_ingredientsTable, SIGNAL(cellDataChanged(int,int,QVariant,QVariant,int)), this, SLOT(onIngredientsCellValueChanged(int,int,QVariant,QVariant,int)));
 }
 
 void RationTable::setRecipeTable(RecipeTable *table) {
     _recipeTable = table;
-    connect(_recipeTable, SIGNAL(cellDataChanged(int,int,QVariant,QVariant,int)), this, SLOT(onRecipeCellValueChanged(int,int,QVariant,QVariant,int)));
+   // connect(_recipeTable, SIGNAL(cellDataChanged(int,int,QVariant,QVariant,int)), this, SLOT(onRecipeCellValueChanged(int,int,QVariant,QVariant,int)));
 }
 
 Ration RationTable::rationFromRow(int row) {
@@ -48,80 +48,24 @@ Ration RationTable::rationFromRow(int row) {
         ration.dm           = index(row, COL_DM).data().toFloat(&ration.dmValid);
 
     } else {
-        qCritical() << "Requesting invalid Ration row index: " << row;
+        MainWindow::dbgPrintf("Requesting invalid Ration row index: %d", row);
     }
 
     return ration;
 }
 
 
-void RationTable::onIngredientsDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles) {
-    auto updatePerRole = [&](int role) {
-        if(role == Qt::EditRole) {
-            for(int row = topLeft.row(); row <= bottomRight.row(); ++row) {
-                for(int col = topLeft.column(); col <= bottomRight.column(); ++col) {
-                    switch(col) {
-                    case IngredientsTable::COL_DM: {
-                        Ingredient ingr = _ingredientsTable->ingredientFromRow(row);
-                        _ingredientDMChanged(QString(ingr.name));
-                    }
-                    /*case IngredientsTable::COL_NAME: {
-                        Ingredient ingr = _ingredientsTable->ingredientFromRow(row);
-                        _ingredientNameChanged(QString(ingr.name));
-
-                    }*/
-                    default: break;
-                    }
-                }
-            }
-        }
-    };
-
-    //roles param is optional and is assumed to be all roles if not provided!
-    if(roles.size()) {
-        for(auto role : roles) {
-            updatePerRole(role);
-        }
-    } else updatePerRole(Qt::EditRole);
-}
-
 void RationTable::onIngredientsCellValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role) {
     if(role == Qt::EditRole) {
-        switch(col) {
-        case IngredientsTable::COL_NAME: _ingredientNameChanged(oldValue.toString(), newValue.toString());
-        default: break;
+        if(col == IngredientsTable::COL_DM) {
+            QString name = _ingredientsTable->index(row, IngredientsTable::COL_NAME).data(role).toString();
+            iterateForColumnVariants(RationTable::COL_INGREDIENT, [&](int row, QVariant data) {
+                if(data.toString() == name) {
+                    RationsTableDelegate::_updateReadOnlyColumns(this, index(row, COL_INGREDIENT));
+                }
+            });
         }
     }
-}
-
-void RationTable::onRecipeCellValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role) {
-    if(role == Qt::EditRole) {
-        switch(col) {
-        case RecipeTable::COL_NAME: _recipeNameChanged(oldValue.toString(), newValue.toString());
-        default: break;
-        }
-    }
-}
-
-
-unsigned RationTable::_recipeNameChanged(QString oldName, QString newName) {
-    qDebug() << "RationTable - recipe name " << oldName << " changed to " << newName;
-
-    pushFilter();
-    unsigned updatedCount = updateColumnValues(COL_RECIPE, oldName, newName);
-    popFilter();
-    qDebug() << "\t" << updatedCount << " references updated!";
-    return updatedCount;
-}
-
-unsigned RationTable::_ingredientNameChanged(QString oldName, QString newName) {
-    qDebug() << "RationTable - ingredient name " << oldName << " changed to " << newName;
-
-    pushFilter();
-    unsigned updatedCount = updateColumnValues(COL_INGREDIENT, oldName, newName);
-    popFilter();
-    qDebug() << "\t" << updatedCount << " references updated!";
-    return updatedCount;
 }
 
 unsigned RationTable::_ingredientDMChanged(QString ingredientName) {
@@ -160,35 +104,17 @@ void RationTable::insertHeaderData(void) {
     setHeaderData(COL_DM,               Qt::Horizontal, "DM, lbs");
 }
 
-QStringList RationTable::getUnusedIngredientsList(void) const {
-    //Create a list of all available ingredient names
-    int rows = _ingredientsTable->rowCount();
-    QStringList stringList;
-    for(int i = 0; i < rows; ++i) stringList.append(_ingredientsTable->index(i, IngredientsTable::COL_NAME).data().toString());
+QStringList RationTable::getUnusedIngredientsList(int excludeRow) const {
+    QStringList ingredientsList;
+    _ingredientsTable->iterateForColumnVariants(IngredientsTable::COL_NAME, [&](int, QVariant value) {
+        ingredientsList.push_back(value.toString());
+    });
 
-    //Now remove ingredient names that are already in use!
-    for(int i = 0; i < rowCount(); ++i) {
-        QString str = index(i, COL_INGREDIENT).data().toString();
-        for(int j = 0; j < stringList.size(); ++j) {
-            if(str == stringList.at(j)) {
-                stringList.removeAt(j);
-                break;
-            }
-        }
-    }
-    return stringList;
+    iterateForColumnVariants(RationTable::COL_INGREDIENT, [&](int row, QVariant value) {
+        if(excludeRow == -1 || excludeRow != row) ingredientsList.removeAll(value.toString());
+    });
+    return ingredientsList;
 }
-
-bool RationTable::tryAppendRow(void) {
-    if(getUnusedIngredientsList().size()) {
-        return insertRows(rowCount(), 1);
-    } else {
-       QMessageBox::critical(nullptr, "Failed to Add Ingredient", "You've already used all of the available ingredients in this recipe!");
-        return false;
-    }
-
-}
-
 
 int Ration::validate(QStringList& detailedText) const {
     int errors = 0;

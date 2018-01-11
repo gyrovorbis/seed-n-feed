@@ -9,17 +9,16 @@
 class QStringList;
 class NutrientTable;
 
-struct Ingredient {
+struct Ingredient { //: public DynamicColumnsTableEntry {
             Ingredient(void);
             Ingredient(unsigned nutrientCount);
             Ingredient(Ingredient&& other);
-
-            ~Ingredient(void);
 
     bool    nameValid = false;
     char    name[INGREDIENT_NAME_SIZE];
     bool    dmValid = false;
     float   dm;
+    bool    tdnValid = false;
     bool    nemValid = false;
     float   nem;
     bool    negValid = false;
@@ -33,21 +32,7 @@ struct Ingredient {
     bool    vitaValid = false;
     float   vita;
 
-    void        setNutrientCount(unsigned count);
-    unsigned    getNutrientCount(void) const;
-    bool        isNutrientValid(unsigned index) const;
-    void        setNutrientValue(unsigned index, float value);
-    void        setNutrientValid(unsigned index, bool value=true);
-    float       getNutrientValue(unsigned index) const;
-
-
     int validate(QStringList& detailedText) const;
-
-private:
-    unsigned    _nutrientsCount = 0;
-    float*      _nutrientsValues = nullptr;
-    bool*       _nutrientsValid  = nullptr;
-
 };
 
 class IngredientsTable : public SqlTableModel {
@@ -58,6 +43,7 @@ public:
     enum COLUMNS {
         COL_NAME,
         COL_DM,
+        COL_TDN,
         COL_NEM,
         COL_NEG,
         COL_PROTEIN,
@@ -77,5 +63,32 @@ public:
     void                    setNutrientTable(NutrientTable* table);
 };
 
+
+
+
+//========= INLINEZ ==========
+#if 0
+template<typename T>
+inline T DynamicColumnsTableEntry::getDynamicColumnValue(int index) {
+    Q_ASSERT(index >= 0 && index < _dynColCount);
+    return _dynColVariants->value<T>();
+}
+
+template<typename T>
+inline void DynamicColumnsTableEntry::setDynamicColumnValue(int index, T&& value) {
+    Q_ASSERT(index >= 0 && index < _dynColCount);
+    _dynColVariants[index] = std::forward<T>(value);
+}
+
+inline QVariant::Type DynamicColumnsTableEntry::getDynamicColumnType(int index) const {
+    Q_ASSERT(index >= 0 && index < _dynColCount);
+    return _dynColVariants[index].type();
+}
+
+inline QString DynamicColumnsTableEntry::getDynamicColumnTypeName(int index) const {
+    Q_ASSERT(index >= 0 && index < _dynColCount);
+    return _dynColVariants[index].typeName();
+}
+#endif
 
 #endif // NUTRITIONALVALUE_H

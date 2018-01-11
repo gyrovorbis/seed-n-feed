@@ -1,11 +1,13 @@
+#include <QMessageBox>
 #include "delegate/dynamic_model_column_combobox.h"
-#include <QAbstractItemModel>
+#include "model/sql_table.h"
 
 DynamicModelColumnComboBox::DynamicModelColumnComboBox(QWidget *parent):
     QComboBox(parent)
 {}
 
 void DynamicModelColumnComboBox::populate(void) {
+
     QString previousText;
     Q_ASSERT(_srcColumn != -1 && _srcModel);
 
@@ -16,24 +18,39 @@ void DynamicModelColumnComboBox::populate(void) {
     //clear existing items
     while(count() > 0) removeItem(0);
 
+    _srcModel->protectedSelect();
+    _srcModel->pushFilter();
+
     //repopulate based on current table values
     for(int r = 0; r < _srcModel->rowCount(); ++r) {
-        addItem(_srcModel->index(r, _srcColumn).data().toString());
+        auto idx = _srcModel->index(r, _srcColumn);
+        Q_ASSERT(idx.isValid());
+        if(!_filterCb || (_filterCb && _filterCb(idx)))
+            addItem(idx.data().toString());
     }
+
 
     if(!previousText.isNull() && !previousText.isEmpty()) setCurrentText(previousText);
     else if(count()) {
         setCurrentText("");
         setCurrentIndex(0);
     }
+
+    _srcModel->popFilter();
+
 }
 
 void DynamicModelColumnComboBox::showPopup(void) {
     populate();
+    if(count() == 0) {
+        if(!_emptyErrStr.isNull()) {
+            QMessageBox::critical(nullptr, "No Data Found", _emptyErrStr);
+        }
+    }
     QComboBox::showPopup();
 }
 
-void DynamicModelColumnComboBox::setSrcModelColumn(QAbstractItemModel *model, int col) {
+void DynamicModelColumnComboBox::setSrcModelColumn(SqlTableModel *model, int col) {
     _srcColumn = col;
     _srcModel = model;
 }

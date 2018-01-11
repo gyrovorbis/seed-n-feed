@@ -11,9 +11,11 @@
 #define DEBUG_LOG_NAME     "debug_log.txt"
 #define USER_DIR_NAME      "seednfeed"
 #define DEFAULT_DB_PATH     ":/defaults.db"
+#define BUILTIN_NUTR_COUNT  8
 
 class QToolButton;
 class QAbstractItemModel;
+class QTableWidgetItem;
 
 namespace Ui {
     class MainWindow;
@@ -25,6 +27,7 @@ class IngredientsTable;
 class RationTable;
 class RecipeTable;
 class AnimalNutritionReqTable;
+class AnimalTable;
 class NutrientTable;
 
 class MainWindow : public QMainWindow
@@ -38,11 +41,25 @@ public:
         LOG_ERROR,
     };
 
+    enum MAIN_TABS {
+        MAIN_TAB_CALC,
+        MAIN_TAB_RECIPES,
+        MAIN_TAB_INGREDIENTS,
+        MAIN_TAB_ANIMALS,
+        MAIN_TAB_NUTRIENTS
+    };
+
     explicit            MainWindow(QWidget* parent = nullptr);
     virtual             ~MainWindow(void);
 
     void                setStatusBarWarnings(QStringList list);
     void                setStatusBarErrors(QStringList list);
+
+    static void         dbgPrintf(const char* str, ...);
+    static void         dbgPush(void);
+    static void         dbgPop(int depth=1);
+
+    static auto         _createItem(const char* fmt, ...) -> QTableWidgetItem*;
 
 private:
     Ui::MainWindow*          _ui;
@@ -52,9 +69,11 @@ private:
     RationTable*             _rationTable               = nullptr;
     RecipeTable*             _recipeTable               = nullptr;
     NutrientTable*           _nutrientTable             = nullptr;
+    AnimalTable*             _animalTable               = nullptr;
     QDir                     _userDir;
     QString                  _dbPath;
     static FILE*             _dbgLogFile;
+    static int               _logDepth;
 
     QToolButton*             _statusWarnButton;
     QToolButton*             _statusErrorButton;
@@ -76,12 +95,17 @@ private:
     void                _updateTotalsTableRows(void);
     bool                _importDb(QString filepath);
     bool                _loadDefaultDatabase(void);
+    int                 _getCalcAnimalRow(void) const;
+    int                 _getCalcRecipeRow(void) const;
+    int                 _getCalcNutritionReqsRow(void) const;
+
+    void                _updateCalculationTabWidgets(void);
 
     static void         logQ(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-    static void         dbgPrintf(const char* str, ...);
     static void         _writeLog(const char* str);
 
 private slots:
+    void                onMainTabChange(int index);
     void                onAddIngredientClick(bool);
     void                onDeleteIngredientClick(bool);
 
@@ -91,7 +115,7 @@ private slots:
     void                onAddRecipeClick(bool);
     void                onDeleteRecipeClick(bool);
     void                onRecipeSelectionChanged(const QModelIndex& selected, const QModelIndex& deselected);
-    void                onRecipeValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int editRole);
+    void                onRecipeValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role);
 
     void                onAddRationClick(bool);
     void                onDeleteRationClick(bool);
@@ -100,11 +124,21 @@ private slots:
     void                onDeleteAnimalNutritionReqClick(bool);
 
     void                onCalculateButtonClick(bool);
+    void                onRecipeComboBoxChange(QString text);
     void                onAnimalComboBoxChange(QString text);
+    void                onMatureWeightComboBoxChange(QString text);
+    void                onCurrentWeightComboBoxChange(QString text);
+    void                onAverageDailyGainComboBoxChange(QString text);
 
     void                on_actionExport_triggered();
     void                on_actionImport_triggered();
-    void on_actionUse_Default_triggered();
+    void                on_actionUse_Default_triggered();
+    void                on_actionAbout_triggered();
+
+    void                on_addAnimalTypeButton_clicked();
+    void                on_deleteAnimalTypeButton_clicked();
+    void                onAnimalSelectionChanged(const QModelIndex& selected, const QModelIndex& deselected);
+    void                onAnimalValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role);
 };
 
 #endif // MAINWINDOW_H

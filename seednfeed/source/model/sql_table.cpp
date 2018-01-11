@@ -1,13 +1,42 @@
-#include <QDebug>
 #include <QFile>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlDriver>
+#include <QSqlRecord>
+#include <climits>
+#include <QTextStream>
+#include <cfloat>
+
 #include "model/sql_table.h"
 #include "core/utilities.h"
+#include "ui/mainwindow.h"
 
 SqlTableModel::SqlTableModel(QObject *parent, QSqlDatabase database):
-    QSqlTableModel(parent, database) {}
+    QSqlRelationalTableModel(parent, database) {}
+
+
+bool SqlTableModel::protectedDbCommit(void) {
+    if(submitAll()) {
+        if(!database().commit()) {
+#if 0
+            MainWindow::dbgPrintf("Error commiting database within table [%s]", Q_CSTR(tableName()));
+            MainWindow::dbgPush();
+            MainWindow::dbgPrintf("Msg: %s", Q_CSTR(database().lastError().text()));
+            MainWindow::dbgPop();
+            return false;
+#endif
+        }
+    }
+    return true;
+}
+
+bool SqlTableModel::protectedSelect(void) {
+    if(!select()) {
+        MainWindow::dbgPrintf("select() failed on DB table [%s]", Q_CSTR(tableName()));
+        return false;
+    }
+    return true;
+}
 
 //Stolen from: https://evileg.com/en/post/190/
 //thanks, nigga
@@ -42,8 +71,7 @@ bool SqlTableModel::exportCSV(const QAbstractItemModel* model, QString filePath)
          return true;
      } else {
 
-         qCritical() << "File could not be opened for writing: " << filePath;
-         qCritical() << csvFile.errorString();
+         MainWindow::dbgPrintf("File [%s] could not be opened for writing: %s", Q_CSTR(filePath), Q_CSTR(csvFile.errorString()));
          return false;
      }
 }
@@ -73,8 +101,7 @@ bool SqlTableModel::importCSV(QAbstractItemModel* model, QString filePath) {
          return true;
      } else {
 
-         qCritical() << "File could not be opened for reading: " << filePath;
-         qCritical() << csvFile.errorString();
+         MainWindow::dbgPrintf("File [%s] could not be opened for writing: %s", Q_CSTR(filePath), Q_CSTR(csvFile.errorString()));
          return false;
      }
 }
@@ -92,26 +119,39 @@ void SqlTableModel::forceReloadModel(void) {
     //setTable("");
     //clear();
     setTable(tableName());
-    select();
+    protectedSelect();
 }
 
-bool SqlTableModel::addSqlColumn(QString colName, QString dataType) {
+bool SqlTableModel::addSqlColumn(QString colName, QString dataType, QVariant defaultVal, QString other) {
     QSqlQuery query;
     char sqlCmdBuff[SQL_TABLE_MODEL_MAX_QUERY_SIZE];
+    char defValBuff[200] = { 0 };
+    bool success;
+
+    MainWindow::dbgPrintf("Adding column[%s (%s) %s] to table %s", Q_CSTR(colName), Q_CSTR(dataType), Q_CSTR(other), Q_CSTR(tableName()));
+
+    MainWindow::dbgPush();
+
+    if(!defaultVal.isNull() && defaultVal.isValid()) {
+        sprintf(defValBuff, "default %s", Q_CSTR(defaultVal.toString()));
+    }
+
     sprintf(sqlCmdBuff,
-            "ALTER TABLE %s\n\tADD COLUMN %s %s;", Q_CSTR(tableName()), Q_CSTR(colName), Q_CSTR(dataType));
+            "ALTER TABLE %s\n\tADD COLUMN %s %s %s %s;", Q_CSTR(tableName()), Q_CSTR(colName), Q_CSTR(dataType), defValBuff, Q_CSTR(other));
 
     if(!query.exec(sqlCmdBuff)) {
-        qCritical() << "Unable to add column" << colName << "to the" << tableName() << "database table: " << query.lastError();
-        return false;
+        MainWindow::dbgPrintf("Query Failed with Error: %s", Q_CSTR(query.lastError().text()));
+        MainWindow::dbgPrintf("Query: %s", sqlCmdBuff);
+        success = false;
     } else {
-         qDebug() << "Successfully added column" << colName << "to the" << tableName() << "database table!";
-        if(submitAll()) {
-            database().commit();
-        }
+        _addColumnEntry({ colName, dataType, defaultVal, other });
+        protectedDbCommit();
         forceReloadModel();
-        return true;
+        success = true;
     }
+
+    MainWindow::dbgPop();
+    return success;
 
 }
 
@@ -127,24 +167,34 @@ bool SqlTableModel::_normalDropSqlColumn(QString colName) {
             "ALTER TABLE %s\n\tDROP %s;", Q_CSTR(tableName()), Q_CSTR(colName));
 
     if(!query.exec(sqlCmdBuff)) {
-        qCritical() << "Unable to drop column" << colName << "from the" << tableName() << "database table: " << query.lastError();
+        MainWindow::dbgPrintf("Query Failed with Error: %s", Q_CSTR(query.lastError().text()));
+        MainWindow::dbgPrintf("Query: %s", sqlCmdBuff);
         return false;
     } else {
-         qDebug() << "Successfully dropped column" << colName << "from the" << tableName() << "database table!";
-        if(submitAll()) {
-            database().commit();
-        }
+        protectedDbCommit();
         forceReloadModel();
         return true;
     }
 }
 
 bool SqlTableModel::dropSqlColumn(QString colName) {
-    if(database().driverName() == "QSQLITE") return _sqliteDropSqlColumn(colName);
-    else return _normalDropSqlColumn(colName);
+    MainWindow::dbgPrintf("Dropping column [%s] from table [%s].", Q_CSTR(colName), Q_CSTR(tableName()));
+    MainWindow::dbgPush();
+
+    bool success;
+    if(database().driverName() == "QSQLITE") success = _sqliteDropSqlColumn(colName);
+    else success = _normalDropSqlColumn(colName);
+
+    if(success) {
+        _removeColumnEntry(colName);
+    }
+
+    MainWindow::dbgPop();
+    return success;
 }
 
 bool SqlTableModel::changeSqlColumnDataType(QString colName, QString dataType) {
+
     QSqlQuery query;
     char sqlCmdBuff[SQL_TABLE_MODEL_MAX_QUERY_SIZE];
     sprintf(sqlCmdBuff,
@@ -152,13 +202,12 @@ bool SqlTableModel::changeSqlColumnDataType(QString colName, QString dataType) {
             "ALTER COLUMN %s %s;", Q_CSTR(tableName()), Q_CSTR(colName), Q_CSTR(dataType));
 
     if(!query.exec(sqlCmdBuff)) {
-        qCritical() << "Unable to alter column" << colName << "in the" << tableName() << "database table: " << query.lastError();
+        MainWindow::dbgPrintf("Query Failed with Error: %s", Q_CSTR(query.lastError().text()));
+        MainWindow::dbgPrintf("Query: %s", sqlCmdBuff);
         return false;
     } else {
-         qDebug() << "Successfully altered column" << colName << "in the" << tableName() << "database table!";
-        if(submitAll()) {
-            database().commit();
-        }
+       //  qDebug() << "Successfully altered column" << colName << "in the" << tableName() << "database table!";
+        protectedDbCommit();
         forceReloadModel();
         return true;
     }
@@ -172,13 +221,13 @@ bool SqlTableModel::_normalRenameSqlColumn(QString oldName, QString newName) {
             "RENAME COLUMN %s %s;", Q_CSTR(tableName()), Q_CSTR(oldName), Q_CSTR(newName));
 
     if(!query.exec(sqlCmdBuff)) {
-        qCritical() << "Unable to rename column" << oldName << "in the" << tableName() << "database table to" << newName << ": " << query.lastError();
+        MainWindow::dbgPrintf("Query Failed with Error: %s", Q_CSTR(query.lastError().text()));
+        MainWindow::dbgPrintf("Query: %s", sqlCmdBuff);
         return false;
     } else {
-         qDebug() << "Successfully renamed column" << oldName << "in the" << tableName() << "database table to" << newName << "!";
-        if(submitAll()) {
-            database().commit();
-        }
+        // qDebug() << "Successfully renamed column" << oldName << "in the" << tableName() << "database table to" << newName << "!";
+
+        protectedDbCommit();
         forceReloadModel();
         return true;
     }
@@ -186,36 +235,64 @@ bool SqlTableModel::_normalRenameSqlColumn(QString oldName, QString newName) {
 
 bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
     QSqlQuery query;
-    char sqlCmdBuff[SQL_TABLE_MODEL_MAX_QUERY_SIZE];
+    QString sqlCmdBuff;
+
+    MainWindow::dbgPrintf("SqlTableModel::_sqliteRenameSqlColumn(%s, %s)", oldName.isNull()? "NULL" : Q_CSTR(oldName), newName.isNull()? "NULL" : Q_CSTR(newName));
+    MainWindow::dbgPush();
 
     const bool remove = (newName.isNull() || newName.isEmpty());
+
     const int column = columnIndexFromName(oldName);
     if(column == -1) {
-         if(remove) qCritical() << "Unable to remove column" << oldName << "from the" << tableName() << "database table due to invalid index:" << column;
-         else       qCritical() << "Unable to rename column" << oldName << "to" << newName << "from the" << tableName() << "database table due to invalid index:" << column;
+         MainWindow::dbgPrintf("Invalid column index retrived from oldName!");
+         MainWindow::dbgPop();
          return false;
     }
 
-    QStringList srcColumnNames = getColumnNames();
-    for(auto& str: srcColumnNames) str = QString("\"") + str + QString("\"");
-    newName = QString("\"") + newName + QString("\"");
-    if(remove) srcColumnNames.removeAt(column);
-    QStringList dstColumnNames = srcColumnNames;
-    if(!remove) dstColumnNames.replace(column, newName);
-    QString commaSeparatedSrcColNames = srcColumnNames.join(',');
-    QString commaSeparatedDstColNames = dstColumnNames.join(',');
+    auto srcColEntries = _colEntries;
+    auto dstColEntries = _colEntries;
 
-    sprintf(sqlCmdBuff,
-            "CREATE TEMPORARY TABLE t1_backup(%s);\n"
-            "INSERT INTO t1_backup SELECT %s FROM %s;\n"
-            "DROP TABLE %s;\n"
-            "CREATE TABLE %s(%s);\n"
-            "INSERT INTO %s SELECT %s FROM t1_backup;\n"
-            "DROP TABLE t1_backup;",
-            Q_CSTR(commaSeparatedSrcColNames), Q_CSTR(commaSeparatedSrcColNames), Q_CSTR(tableName()), Q_CSTR(tableName()),
-            Q_CSTR(tableName()), Q_CSTR(commaSeparatedDstColNames), Q_CSTR(tableName()), Q_CSTR(commaSeparatedSrcColNames));
+    if(remove) {
+        srcColEntries.remove(column);           //skip (remove) entry source and dest
+        dstColEntries.remove(column);
+    } else {
+        dstColEntries[column].name = newName;   //rename entry in dest
+    }
+
+    QString srcColNameStrings;
+    QString dstColNameStrings;
+    QString dstColInitStrings;
+
+    for(int i = 0; i < srcColEntries.size(); ++i) {
+        srcColNameStrings += srcColEntries[i].name;
+        dstColNameStrings += dstColEntries[i].name;
+        dstColInitStrings += dstColEntries[i].toSqlString();
+        if(i + 1 < srcColEntries.size()) {
+            srcColNameStrings += ", ";
+            dstColNameStrings += ", ";
+            dstColInitStrings += ", ";
+        }
+    }
+
+    sqlCmdBuff = QString(
+            "CREATE TEMPORARY TABLE t1_backup(%1);\n"
+            "INSERT INTO t1_backup SELECT %2 FROM %3;\n"
+            "DROP TABLE %4;\n"
+            "CREATE TABLE %5(%6);\n"
+            "INSERT INTO %7 SELECT %8 FROM t1_backup;\n"
+            "DROP TABLE t1_backup;").arg(
+                Q_CSTR(dstColInitStrings), Q_CSTR(srcColNameStrings), Q_CSTR(tableName()), Q_CSTR(tableName()),
+                Q_CSTR(tableName()), Q_CSTR(dstColInitStrings), Q_CSTR(tableName()), Q_CSTR(dstColNameStrings)
+            );    
 
     QStringList queryTextList = QString(sqlCmdBuff).split("\n");
+
+    MainWindow::dbgPrintf("Final Query:");
+    MainWindow::dbgPush();
+    for(int i = 0; i < queryTextList.size(); ++i) {
+        MainWindow::dbgPrintf("%s", Q_CSTR(queryTextList[i]));
+    }
+    MainWindow::dbgPop();
 
     Q_ASSERT(database().driver()->hasFeature(QSqlDriver::Transactions));
 
@@ -223,56 +300,68 @@ bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
     database().transaction();
     for(int i = 0; i < queryTextList.size(); ++i) {
         if(!query.exec(queryTextList[i])) {
-            qCritical() << "Query failed within transaction: " << query.lastError();
+            MainWindow::dbgPrintf("Query failed: ", Q_CSTR(query.lastError().text()));
             queryFailed = true;
             break;
         }
     }
 
+    bool success;
     if(!queryFailed) {
         //if(submitAll()) {
         submitAll();
             database().commit();
         //}
         forceReloadModel();
-        if(remove)  qDebug() << "Successfully dropped column" << oldName << "from the" << tableName() << "database table!";
-        else        qDebug() << "Successfully renamed column" << oldName << "from the" << tableName() << "database table to" << newName;
-        return true;
+        success = true;
     } else {
+        MainWindow::dbgPrintf("Rolling back db.");
         database().rollback();
         forceReloadModel();
-        if(remove)  qCritical() << "Unable to drop column" << oldName << "from the" << tableName() << "database table.";
-        else        qCritical() << "Unable to rename column" << oldName << "to" << newName << "from the" << tableName() << "database table!";
-        return false;
+
+        success = false;
     }
 
+    MainWindow::dbgPop();
+    return success;
 }
 
 
 //same motherfucking problem as deleting a column with SQLite.
 //Has to be fundamentally reworked to create a new table and copy shit over all inefficiently as fuck!
 bool SqlTableModel::renameSqlColumn(QString oldName, QString newName) {
-    if(database().driverName() == "QSQLITE") return _sqliteRenameSqlColumn(oldName, newName);
-    else return _normalRenameSqlColumn(oldName, newName);
+    MainWindow::dbgPrintf("Renaming column [%s] to [%s] in table [%s].", Q_CSTR(oldName), Q_CSTR(newName), Q_CSTR(tableName()));
+    MainWindow::dbgPush();
+
+    bool success;
+    if(database().driverName() == "QSQLITE") success = _sqliteRenameSqlColumn(oldName, newName);
+    else success = _normalRenameSqlColumn(oldName, newName);
+
+    if(success) {
+        int idx = columnIndexFromName(oldName);
+        auto entry = _getColumnEntry(idx);
+        entry.name = newName;
+        _setColumnEntry(idx, entry);
+    }
+
+    MainWindow::dbgPop();
+    return success;
 }
 
 QString SqlTableModel::columnNameFromIndex(int index) const {
     Q_ASSERT(index >= 0 && index < columnCount());
-    return headerData(index, Qt::Horizontal, Qt::DisplayRole).toString();
-
+    return _colEntries[index].name;
 }
 
 int SqlTableModel::columnIndexFromName(QString name) const {
-    for(int i = 0; i < columnCount(); ++i) {
-        if(headerData(i, Qt::Horizontal, Qt::DisplayRole).toString() == name) return i;
-    }
-    return -1;
+    auto it = _colEntryNameToIndexHash.constFind(name);
+    return (it == _colEntryNameToIndexHash.constEnd())? -1 : it.value();
 }
 
 QStringList SqlTableModel::getColumnNames(void) const {
     QStringList colNames;
     for(int i = 0; i < columnCount(); ++i) {
-        colNames += columnNameFromIndex(i);
+        colNames += _getColumnEntry(i).name;
     }
     return colNames;
 }
@@ -288,14 +377,14 @@ bool SqlTableModel::setData(const QModelIndex &index, const QVariant &value, int
 bool SqlTableModel::pushFilter(QString string) {
     _filterStack.push(filter());
     setFilter(string);
-    return select();
+    return protectedSelect();
 }
 
 bool SqlTableModel::popFilter(void) {
     Q_ASSERT(_filterStack.size());
     QString filterStr = _filterStack.pop();
     setFilter(filterStr);
-    return select();
+    return protectedSelect();
 }
 
 unsigned SqlTableModel::updateColumnValues(int col, QVariant oldVal, QVariant newVal, int role) {
@@ -309,9 +398,287 @@ unsigned SqlTableModel::updateColumnValues(int col, QVariant oldVal, QVariant ne
     return updatedCount;
 }
 
+QString SqlTableModel::makeCreateTableQueryString(QString name) const {
+    QString str = "create table ";
+    str += (name.isNull() || name.isEmpty())? tableName() : name;
+    str += " (\n";
+
+    for(int i = 0; i < _colEntries.size(); ++i) {
+        str += "\t";
+        str += _colEntries[i].toSqlString();
+        if(i+1 < _colEntries.size()) str += ",\n";
+    }
+
+   str += "\n)";
+
+    return str;
+}
+
+void SqlTableModel::addColumnData(QString name, QString type, QVariant defVal, QString other) {
+    _addColumnEntry({ name, type, defVal, other });
+}
+
+bool SqlTableModel::removeColumnData(QString name) {
+    _removeColumnEntry(name);
+    return true;
+}
+
+bool SqlTableModel::appendNewRow(QVector<QPair<int, QVariant>> defaultVals) {
+
+    bool success = true;
+    pushFilter();
+    int count = rowCount();
+
+    MainWindow::dbgPrintf("Appending new row to table [%s]", Q_CSTR(tableName()));
+    MainWindow::dbgPush();
+
+    insertRows(count, 1);
+
+    submitAll();
+    database().commit();
+
+    auto defaultVal = [&](int col, QVariant old) -> QVariant {
+        for(int cx = 0; cx < defaultVals.size(); ++cx) {
+            if(col == defaultVals[cx].first)
+                return defaultVals[cx].second;
+        }
+        QVariant colDefaultVal = _getColumnEntry(col).defaultVal;
+        return (!colDefaultVal.isNull() && colDefaultVal.isValid())? colDefaultVal : old;
+    };
+
+    for(int c = 0; c < columnCount(); ++c) {
+        auto idx = index(count, c);
+        QVariant old = idx.data(Qt::EditRole);
+        setData(idx, dummyVariantForColumn(c), Qt::EditRole);
+        setData(idx, defaultVal(c, old), Qt::EditRole);
+    }
+
+    submitAll();
+    database().commit();
+
+    if(count+1 == rowCount()) {
+    } else {
+        MainWindow::dbgPrintf("Row wasn't added properly. Expected rowCount: %d, Actual rowCount: %d", count+1, rowCount());
+        success = false;
+    }
+
+
+    submitAll();
+    database().commit();
+    success &= protectedSelect();
+    popFilter();
+    protectedSelect();
+
+    MainWindow::dbgPop();
+    return success;
+}
+
+bool SqlTableModel::deleteRows(QModelIndexList& list) {
+    bool success = true;
+    int expectedRows = rowCount() - list.size();
+
+    MainWindow::dbgPrintf("Deleting %d rows from table [%s].", list.size(), Q_CSTR(tableName()));
+    MainWindow::dbgPush();
+
+    QList<QPersistentModelIndex> persistList;
+
+
+    for(auto idx: list) persistList.push_back(idx);
+    for(auto pIdx: persistList) {
+        Q_ASSERT(pIdx.isValid());
+        removeRows(pIdx.row(), 1);
+    }
+
+    if(protectedDbCommit()) {
+
+        if(protectedSelect()) {
+            if(expectedRows != rowCount()) {
+                MainWindow::dbgPrintf("Something went wrong. Expected rowCount: %d, Actual rowCount: %d", expectedRows, rowCount());
+                success = false;
+            }
+        } else success = false;
+
+    } else success = false;
+
+    success &= protectedSelect();
+
+    MainWindow::dbgPop();
+    return success;
+}
+
+int SqlTableModel::rowIndexWithColumnValue(int col, QVariant value) const {
+    for(int i = 0; i < rowCount(); ++i) {
+        QModelIndex idx = index(i, col);
+        Q_ASSERT(idx.isValid());
+        if(data(idx) == value) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+QString SqlTableModel::makeColumnDataUnique(int col, QString prefix) const {
+    Q_ASSERT(col >= 0 && col < columnCount());
+
+    int num = 0;
+    QString str;
+    do {
+        str = prefix;
+        str += QString::number(++num);
+    } while(rowIndexWithColumnValue(col, str) != -1);
+
+    return str;
+}
+
+
+SqlTableRowEntry::SqlTableRowEntry(int row, SqlTableModel *model):
+    _model(model)
+{
+    Q_ASSERT(model);
+
+    if(row >= 0 && row < model->rowCount()) { //an actual row existing within the DB
+        _colData.reserve(model->columnCount());
+        for(int i = 0; i < model->columnCount(); ++i) {
+            _colData.push_back(model->data(_model->index(row, i)));
+        }
+    } else { //this is just a new entry that doesn't really exist within the DB
+        _colData.resize(model->columnCount());
+        //model->database().record(model->tableName()).
+
+    }
+}
+
+
+SqlTableRowEntry SqlTableModel::getTableRowEntry(int row) {
+    Q_ASSERT(row >= 0 && row < rowCount());
+    return SqlTableRowEntry(row, this);
+}
+
+SqlTableRowEntry SqlTableModel::createTableRowEntry(void) {
+    return SqlTableRowEntry(-1, this);
+}
+
+QModelIndexList SqlTableModel::findRowsWithColumnValue(int col, QVariant variant) {
+    Q_ASSERT(col >= 0 && col < columnCount());
+
+    QModelIndexList list;
+
+    for(int i = 0; i < rowCount(); ++i) {
+        QModelIndex idx = index(i, col);
+        if(idx.data() == variant) list.push_back(idx);
+    }
+
+    return list;
+}
+
+QVariant SqlTableModel::getVariant(int row, int col, int role) const {
+    auto idx = index(row, col);
+    Q_ASSERT(idx.isValid());
+    return idx.isValid()? idx.data(role) : QVariant();
+}
+
+
+void SqlTableModel::setVariant(int row, int col, QVariant variant, int role) {
+    auto idx = index(row, col);
+    Q_ASSERT(idx.isValid());
+    if(idx.isValid()) setData(idx, variant, role);
+}
+
+
+void SqlTableModel::addColumnRelationship(int localCol, int srcCol, SqlTableModel *model, bool oneToOne, int role) {
+    _colRelationEntries.push_back(ColumnRelationEntry{ localCol, srcCol, model, oneToOne, role });
+    connect(model, &SqlTableModel::cellDataChanged, [=](int r, int c, QVariant oldVariant, QVariant newVariant, int rol) {
+        if(rol == role && c == srcCol) {
+            pushFilter();
+            iterateForColumnVariants(localCol, [&](int row, QVariant v) {
+                if(v == oldVariant) {
+                    setData(index(row, localCol), newVariant, role);
+                }
+            });
+            popFilter();
+        }
+    });
+}
+
+void SqlTableModel::addColumnsFromRowsRelationship(int srcCol, SqlTableModel* model, QString type, QVariant defValue, int role) {
+    _dynColEntry = {
+        srcCol,
+        model,
+        {
+            QString(),
+            type,
+            defValue,
+            QString(),
+        },
+        role
+    };
+
+    auto varIsGoodString = [](QVariant var) {
+        return (!var.isNull() && var.isValid() && !var.toString().isEmpty() && !var.toString().isNull());
+    };
+    //remove column
+    connect(model, &SqlTableModel::rowsRemoved, [=](const QModelIndex& parent, int first, int last) {
+        for(int r =  first; r <= last; ++r) {
+            auto idx = model->index(r, srcCol, parent);
+            Q_ASSERT(idx.isValid());
+            auto name = idx.data(role);
+            pushFilter();
+            dropSqlColumn(name.toString());
+            popFilter();
+        }
+    });
+
+
+    //add/rename column
+    connect(model, &SqlTableModel::cellDataChanged, [=](int r, int c, QVariant oldVariant, QVariant newVariant, int rol) {
+        if(rol == role && c == srcCol) {
+            pushFilter();
+
+            if(varIsGoodString(newVariant)) {
+                if(varIsGoodString(oldVariant)) renameSqlColumn(oldVariant.toString(), newVariant.toString());
+                else addSqlColumn(newVariant.toString(), type, defValue);
+
+            } else {
+                MainWindow::dbgPrintf("Table[%s] rename/add column from row of [%s]: new column/row string is invalid!", Q_CSTR(tableName()), Q_CSTR(model->tableName()));
+            }
+            popFilter();
+        }
+    });
+
+}
+
 
 //create a list of column names/types
 //automatically handle create new table SQL query given parameters
 //handle drag n drop
 //handle MIME data?
 //allow other tables to register as listeners when certain field(s) change?
+
+QVariant SqlTableModel::dummyVariantForColumn(int col) const {
+    Q_ASSERT(col >= 0 && col < columnCount());
+    auto entry = _getColumnEntry(col);
+    if(entry.type == "real") {
+        return QVariant(FLT_MAX);
+    } else if(entry.type == "int") {
+        return QVariant(INT_MAX);
+    } else {
+        return QVariant("string");
+    }
+}
+
+//Required for when the application starts up to sync columns, as opposed to when they were added interactively
+void SqlTableModel::populateDynamicColumnEntries(void) {
+    for(int r = 0; r < _dynColEntry.srcModel->rowCount(); ++r) {
+        //(_dynColEntry.srcModel->index(r, _dynColEntry.srcCol).data(_dynColEntry.role).toString(), _dynColEntry.colEntry.type, _dynColEntry.colEntry.defaultVal);
+        _addColumnEntry({_dynColEntry.srcModel->index(r, _dynColEntry.srcCol).data(_dynColEntry.role).toString(),
+                        _dynColEntry.colEntry.type,
+                        _dynColEntry.colEntry.defaultVal,
+                        QString()});
+    }
+}
+
+void SqlTableModel::addHeaderData(int col, Qt::Orientation orient, QString name, QString tooltip) {
+    setHeaderData(col, orient, name, Qt::EditRole);
+    setHeaderData(col, orient, tooltip, Qt::ToolTipRole);
+}

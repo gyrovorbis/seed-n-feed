@@ -1,6 +1,5 @@
 #include "model/recipe_table.h"
 #include "core/utilities.h"
-#include <QDebug>
 
 RecipeTable::RecipeTable(QObject *parent, QSqlDatabase database):
            SqlTableModel(parent, database)

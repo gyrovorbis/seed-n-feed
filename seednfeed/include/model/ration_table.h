@@ -48,14 +48,11 @@ public:
                             RationTable(QObject* parent, QSqlDatabase db);
     virtual Qt::ItemFlags   flags(const QModelIndex &index) const override;
     virtual QVariant        data(const QModelIndex &index, int role) const override;
-
-
-    bool                    tryAppendRow(void);
     void                    insertHeaderData(void);
 
     Ration                  rationFromRow(int row);
 
-    QStringList             getUnusedIngredientsList(void) const;
+    QStringList             getUnusedIngredientsList(int excludeRow=-1) const;
 
     //returns number of affected/updated rows
     unsigned                _ingredientDMChanged(QString ingredientName);
@@ -66,9 +63,7 @@ public:
     void                    setRecipeTable(RecipeTable* table);
 
 private slots:
-    void                    onIngredientsDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles);
     void                    onIngredientsCellValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role);
-    void                    onRecipeCellValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role);
 };
 
 #endif // RATION_TABLE_H

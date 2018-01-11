@@ -6,6 +6,8 @@
 #include <QDoubleValidator>
 #include <limits>
 
+using IngTable = IngredientsTable;
+
 IngredientsTableDelegate::IngredientsTableDelegate(QObject *parent): QStyledItemDelegate(parent)
 {}
 
@@ -19,8 +21,16 @@ QWidget* IngredientsTableDelegate::createEditor(QWidget *parent, const QStyleOpt
   case IngredientsTable::COL_NAME:
       validator = new DuplicateColumnModelValidator(IngredientsTable::COL_NAME, index.model());
       break;
+  case IngTable::COL_DM:
+  case IngTable::COL_TDN:
+  case IngTable::COL_CA:
+  case IngTable::COL_P:
+  case IngTable::COL_PROTEIN:
+      validator = new QDoubleValidator(0.0, 100.0f, DOUBLE_VALIDATOR_DECIMALS_MAX);
+      break;
   default:
       validator = new QDoubleValidator(0.0, std::numeric_limits<double>::max(), DOUBLE_VALIDATOR_DECIMALS_MAX);
+      break;
   }
 
   lineEdit->setValidator(validator);

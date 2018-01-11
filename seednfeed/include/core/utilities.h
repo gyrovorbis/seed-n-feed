@@ -2,8 +2,8 @@
 #define UTILITIES_H
 
 #define VERSION_MAJOR  0
-#define VERSION_MINOR  1
-#define VERSION_PATCH  1
+#define VERSION_MINOR  2
+#define VERSION_PATCH  0
 
 #define _STRINGIFY_MACRO(a) #a
 #define STRINGIFY_MACRO(a) _STRINGIFY_MACRO(a)

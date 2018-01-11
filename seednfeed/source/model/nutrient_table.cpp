@@ -1,7 +1,7 @@
 #include "model/nutrient_table.h"
 #include "model/ingredients_table.h"
 #include "core/utilities.h"
-#include <QDebug>
+#include "ui/mainwindow.h"
 
 NutrientTable::NutrientTable(QObject *parent, QSqlDatabase database):
            SqlTableModel(parent, database)
@@ -33,7 +33,7 @@ Nutrient NutrientTable::nutrientFromRow(int row) {
         }
 
     } else {
-        qCritical() << "Requesting invalid Nutrient row index: " << row;
+        MainWindow::dbgPrintf("Requesting invalid Nutrient row index: %d", row);
     }
 
     return nutrient;
@@ -51,17 +51,17 @@ void NutrientTable::setIngredientsTable(IngredientsTable* table) {
 }
 
 bool NutrientTable::setData(const QModelIndex &index, const QVariant &value, int role) {
-    if(index.column() == COL_NAME && role == Qt::EditRole) {
+  /*  if(index.column() == COL_NAME && role == Qt::EditRole) {
         QString oldValue = data(index).toString();
 
         //check whether we're renaming an existing column
         if(!oldValue.isNull() && !oldValue.isEmpty()) {
             //check whether or not rename was successful
             if(!_ingredientsTable->renameSqlColumn(oldValue, value.toString())) {
-                return false;
+                return true;
             }
         }
-    }
+    }*/
 
     return SqlTableModel::setData(index, value, role);
 

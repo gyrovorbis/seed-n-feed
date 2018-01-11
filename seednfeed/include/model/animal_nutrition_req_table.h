@@ -1,9 +1,12 @@
 #ifndef ANIMAL_NUTRITION_REQ_TABLE_H
 #define ANIMAL_NUTRITION_REQ_TABLE_H
+
 #include <QString>
-#include <QSqlTableModel>
+#include "model/animal_table.h"
 
 #define ANIMAL_NUTRITION_REQ_DESC_SIZE  50
+
+class AnimalTable;
 
 //Built-in calculation data
 enum ANIMAL_TYPE {
@@ -25,13 +28,12 @@ struct AnimalEnergyEqnData {
 };
 
 
-struct AnimalNutritionReq {
-    bool    descValid = false;
-    char    desc[ANIMAL_NUTRITION_REQ_DESC_SIZE];
-    bool    typeValid = false;
-    int     type;
-    bool    weightValid = false;
-    float   weight;
+struct AnimalNutritionReq  {
+    bool    animalValid = false;
+    char    animal[ANIMAL_NAME_SIZE];
+    bool    expectedWeightValid = false;
+    bool    currentWeightValid = false;
+    float   currentWeight;
     bool    dailyGainValid = false;
     float   dailyGain;
     bool    dmiValid = false;
@@ -52,31 +54,42 @@ struct AnimalNutritionReq {
     int validate(QStringList& detailedText) const;
 };
 
-class AnimalNutritionReqTable : public QSqlTableModel {
+class AnimalNutritionReqTable : public SqlTableModel {
 public:
 
     enum COLUMNS {
-        COL_DESC,
-        COL_TYPE,
-        COL_WEIGHT,
+        COL_ANIMAL,
+        COL_WEIGHT_MATURE,
+        COL_WEIGHT_CURRENT,
         COL_DAILYGAIN,
         COL_DMI,
+        COL_TDN,
         COL_NEM,
         COL_NEG,
         COL_PROTEIN,
         COL_CALCIUM,
         COL_PHOSPHORUS,
-        COL_VITA
+        COL_VITA,
+        COL_DYNAMIC
     };
 
                                 AnimalNutritionReqTable(QObject* parent, QSqlDatabase database);
     virtual auto                flags(const QModelIndex &) const -> Qt::ItemFlags override;
 
     void                        insertHeaderData(void);
-    AnimalNutritionReq          nutritionReqFromRow(int row);
-    int                         rowFromDesc(QString desc);
+    //AnimalNutritionReq          nutritionReqFromRow(int row);
+    //int                         rowFromDesc(QString desc);
 
     static const AnimalEnergyEqnData builtinEnergyTable[ANIMAL_TYPE_COUNT];
+
+
+    void            setAnimalTable(AnimalTable* table);
+    AnimalTable*    getAnimalTable(void) const;
+    float           getGreatestMatureWeight(void) const;
+
+
+private:
+    AnimalTable* _animalTable = nullptr;
 
 };
 

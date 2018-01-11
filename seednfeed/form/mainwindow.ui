@@ -30,131 +30,146 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
-         <widget class="Line" name="line_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <layout class="QGridLayout" name="gridLayout">
-            <item row="6" column="1">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Current Body Weight, Ibs:</string>
-              </property>
-             </widget>
+         <layout class="QGridLayout" name="calculatorInputLayout">
+          <item row="2" column="1">
+           <widget class="DynamicModelColumnComboBox" name="matureWeightComboBox"/>
+          </item>
+          <item row="7" column="1">
+           <widget class="QSpinBox" name="totalHeadSpinBox">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="matureWeightLabel">
+            <property name="text">
+             <string>Estimated Mature Weight (lbs):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QDateEdit" name="startDateEdit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="adgLabel">
+            <property name="text">
+             <string>Average Daily Gain (lbs):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="DynamicModelColumnComboBox" name="currentWeightComboBox"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="DynamicModelColumnComboBox" name="adgComboBox"/>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="totalHeadLabel">
+            <property name="text">
+             <string>Total Head:  </string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="expectedSellWeightSpinBox">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="maximum">
+             <double>2000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="recipeLabel">
+            <property name="text">
+             <string>Recipe:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="DynamicModelColumnComboBox" name="animalComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="currentText">
+             <string/>
+            </property>
+            <item>
+             <property name="text">
+              <string/>
+             </property>
             </item>
-            <item row="0" column="2">
-             <widget class="DynamicModelColumnComboBox" name="animalComboBox">
-              <property name="currentText">
-               <string/>
-              </property>
-              <item>
-               <property name="text">
-                <string/>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="2" column="2">
-             <widget class="QDateEdit" name="startDateEdit">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="2">
-             <widget class="QDoubleSpinBox" name="expectedSellWeightSpinBox">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="maximum">
-               <double>2000.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="1">
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Expected Sell Weight, Ibs:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="DynamicModelColumnComboBox" name="recipeComboBox"/>
-            </item>
-            <item row="5" column="1">
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Total Head:  (Optional)</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Animal Type:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Recipe:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="2">
-             <widget class="QSpinBox" name="totalHeadSpinBox">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="minimum">
-               <number>1</number>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>Start Date:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="2">
-             <widget class="QDoubleSpinBox" name="currentBodyWeightSpinBox">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="maximum">
-               <double>2000.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="animalTypeLabel">
+            <property name="text">
+             <string>Animal Type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="currentWeightLabel">
+            <property name="text">
+             <string>Current Body Weight (lbs):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="expectedSellWeightLabel">
+            <property name="text">
+             <string>Expected Sell Weight (lbs):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="DynamicModelColumnComboBox" name="recipeComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="startDateLabel">
+            <property name="text">
+             <string>Start Date:</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
         <item>
-         <spacer name="verticalSpacer_2">
+         <spacer name="calculateVerticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -177,30 +192,33 @@
          </widget>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="1" column="1">
+         <layout class="QGridLayout" name="calculatorOutputLayout">
+          <item row="0" column="1">
            <widget class="QTableWidget" name="calculationResultTableWidget">
             <property name="editTriggers">
              <set>QAbstractItemView::NoEditTriggers</set>
             </property>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
             <row>
              <property name="text">
-              <string>Total Cost per Day, $</string>
+              <string>Total Cost</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Cost per lbs Gained, $</string>
+              <string>Total Cost/Day</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Total Cost per Head, $</string>
+              <string>Cost/Lb Gained</string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Average Daily Gain (lbs)</string>
+              <string>Avg Daily Gain</string>
              </property>
             </row>
             <row>
@@ -220,81 +238,260 @@
             </row>
             <column>
              <property name="text">
-              <string>Result of Calculation:</string>
+              <string>Results</string>
              </property>
             </column>
+            <item row="0" column="0">
+             <property name="text">
+              <string extracomment="$ (USD)"/>
+             </property>
+             <property name="toolTip">
+              <string>$ (USD)</string>
+             </property>
+            </item>
+            <item row="1" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string>$ (USD) Per Day</string>
+             </property>
+            </item>
+            <item row="2" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string>$ (USD) Per Pound Gained</string>
+             </property>
+            </item>
+            <item row="3" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string>Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="4" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string>Days</string>
+             </property>
+            </item>
+            <item row="5" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string>Weeks</string>
+             </property>
+            </item>
+            <item row="6" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string>Date (MM/DD/YYYY)</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item row="0" column="0">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Maximum</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>10</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="0">
            <widget class="QTableWidget" name="nutritionalTotalsTableWidget">
             <property name="editTriggers">
              <set>QAbstractItemView::NoEditTriggers</set>
             </property>
             <property name="rowCount">
-             <number>6</number>
+             <number>8</number>
             </property>
+            <attribute name="horizontalHeaderCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
             <row>
              <property name="text">
-              <string>DMI (lb/day)</string>
+              <string>DMI </string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>NEm (Mcal/day)</string>
+              <string>TDN </string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>NEg (Mcal/day)</string>
+              <string>NEm </string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Protein (lb/day)</string>
+              <string>NEg </string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Calcium (lb/day)</string>
+              <string>Protein </string>
              </property>
             </row>
             <row>
              <property name="text">
-              <string>Phosphorus (lb/day)</string>
+              <string>CA</string>
+             </property>
+            </row>
+            <row>
+             <property name="text">
+              <string>P </string>
+             </property>
+            </row>
+            <row>
+             <property name="text">
+              <string>Vit A</string>
              </property>
             </row>
             <column>
              <property name="text">
-              <string>Nutritional Totals from Ration:</string>
+              <string>Totals</string>
              </property>
             </column>
             <column>
              <property name="text">
-              <string>Nutritional Requirements Met?</string>
+              <string>Required</string>
              </property>
             </column>
+            <item row="0" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="0" column="1">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
             <item row="1" column="0">
              <property name="text">
               <string/>
              </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="1" column="1">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="2" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Mcal Per Day">Mcal Per Day</string>
+             </property>
              <property name="flags">
               <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsUserCheckable</set>
+             </property>
+            </item>
+            <item row="2" column="1">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Mcal Per Day">Mcal Per Day</string>
+             </property>
+            </item>
+            <item row="3" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Mcal Per Day">Mcal Per Day</string>
+             </property>
+            </item>
+            <item row="3" column="1">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Mcal Per Day">Mcal Per Day</string>
+             </property>
+            </item>
+            <item row="4" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="4" column="1">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="5" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="5" column="1">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="6" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="6" column="1">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="7" column="0">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
+             </property>
+            </item>
+            <item row="7" column="1">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="toolTip">
+              <string extracomment="Pounds Per Day">Pounds Per Day</string>
              </property>
             </item>
            </widget>
@@ -309,158 +506,12 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
-         <layout class="QVBoxLayout" name="recipeLayout">
-          <item>
-           <layout class="QGridLayout" name="gridLayout_7">
-            <property name="sizeConstraint">
-             <enum>QLayout::SetFixedSize</enum>
-            </property>
-            <item row="0" column="3">
-             <widget class="QPushButton" name="recipeDeleteButton">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>delete row</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="0">
-             <widget class="QPushButton" name="recipeAddButton">
-              <property name="maximumSize">
-               <size>
-                <width>50</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>+</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="4">
-             <layout class="QHBoxLayout" name="horizontalLayout_2"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTableView" name="recipeTableView">
-            <property name="sizeAdjustPolicy">
-             <enum>QAbstractScrollArea::AdjustToContents</enum>
-            </property>
-            <property name="alternatingRowColors">
-             <bool>true</bool>
-            </property>
-            <property name="selectionMode">
-             <enum>QAbstractItemView::SingleSelection</enum>
-            </property>
-            <property name="selectionBehavior">
-             <enum>QAbstractItemView::SelectRows</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="Line" name="line">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+         <layout class="QGridLayout" name="recipeButtonLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetFixedSize</enum>
           </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="rationLayout">
-          <item>
-           <layout class="QGridLayout" name="gridLayout_8">
-            <property name="sizeConstraint">
-             <enum>QLayout::SetFixedSize</enum>
-            </property>
-            <item row="0" column="3">
-             <widget class="QPushButton" name="deleteRationButton">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>delete row</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="0">
-             <widget class="QPushButton" name="addRationButton">
-              <property name="maximumSize">
-               <size>
-                <width>50</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>+</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="4">
-             <layout class="QHBoxLayout" name="horizontalLayout_4"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTableView" name="rationTableView">
-            <property name="sizeAdjustPolicy">
-             <enum>QAbstractScrollArea::AdjustToContents</enum>
-            </property>
-            <property name="alternatingRowColors">
-             <bool>true</bool>
-            </property>
-            <property name="selectionBehavior">
-             <enum>QAbstractItemView::SelectRows</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="ingredientsTab">
-       <attribute name="title">
-        <string>Ingredients</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <layout class="QGridLayout" name="gridLayout_4">
-          <item row="1" column="2">
-           <spacer name="horizontalSpacer_2">
+          <item row="0" column="4">
+           <spacer name="recipeButtonRightSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -472,7 +523,219 @@
             </property>
            </spacer>
           </item>
-          <item row="1" column="0">
+          <item row="0" column="3">
+           <widget class="QLabel" name="recipeListLabel">
+            <property name="text">
+             <string>Recipe List</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5">
+           <widget class="QPushButton" name="recipeDeleteButton">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>delete row</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <spacer name="recipeButtonLeftSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="recipeAddButton">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>+</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTableView" name="recipeTableView">
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="recipeLine">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="rationLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetFixedSize</enum>
+          </property>
+          <item row="0" column="3">
+           <widget class="QLabel" name="rationLabel">
+            <property name="text">
+             <string>Rations List for Selected Recipe</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5">
+           <widget class="QPushButton" name="deleteRationButton">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>delete row</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <spacer name="rationButtonLeftSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="addRationButton">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>+</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <spacer name="rationButtonRightSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTableView" name="rationTableView">
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="ingredientsTab">
+       <attribute name="title">
+        <string>Ingredients</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <layout class="QGridLayout" name="ingredientsButtonLayout">
+          <item row="0" column="3">
+           <spacer name="ingredientsButtonRightSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="ingredientsLabel">
+            <property name="text">
+             <string>Ingredients List</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
            <widget class="QPushButton" name="addIngredientButton">
             <property name="maximumSize">
              <size>
@@ -485,7 +748,20 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
+          <item row="0" column="1">
+           <spacer name="ingredientsButtonLeftSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="4">
            <widget class="QPushButton" name="deleteIngredientButton">
             <property name="maximumSize">
              <size>
@@ -502,6 +778,12 @@
         </item>
         <item>
          <widget class="SqlTableView" name="ingredientsTableView">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="sizeAdjustPolicy">
            <enum>QAbstractScrollArea::AdjustToContents</enum>
           </property>
@@ -517,11 +799,20 @@
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
           <attribute name="verticalHeaderCascadingSectionResizes">
            <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
           </attribute>
          </widget>
         </item>
@@ -533,7 +824,141 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <layout class="QGridLayout" name="gridLayout_5">
+         <layout class="QGridLayout" name="animalButtonLayout">
+          <item row="0" column="4">
+           <widget class="QPushButton" name="deleteAnimalTypeButton">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>delete row</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="addAnimalTypeButton">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>+</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <spacer name="animalButtonLeftSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="animalLabel">
+            <property name="text">
+             <string>Animal Types List</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <spacer name="animalButtonRightSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="SqlTableView" name="animalTableView">
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="animalsLine">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="nutritionalReqButtonLayout">
+          <item row="0" column="2">
+           <widget class="QLabel" name="nutritionalReqLabel">
+            <property name="text">
+             <string>Nutritional Requirements Data for Selected Animal Type</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <spacer name="nutritionalReqButtonSpacerRight">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="1">
+           <spacer name="nutritionalReqButtonSpacerLeft">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
           <item row="0" column="0">
            <widget class="QPushButton" name="addAnimalNutritionReqButton">
             <property name="maximumSize">
@@ -547,7 +972,7 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
+          <item row="0" column="4">
            <widget class="QPushButton" name="deleteAnimalNutritionReqButton">
             <property name="maximumSize">
              <size>
@@ -559,19 +984,6 @@
              <string>delete row</string>
             </property>
            </widget>
-          </item>
-          <item row="0" column="1">
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </item>
@@ -589,6 +1001,21 @@
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
          </widget>
         </item>
        </layout>
@@ -599,8 +1026,15 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QGridLayout" name="gridLayout_6">
+         <layout class="QGridLayout" name="nutrientsButtonLayout">
           <item row="0" column="2">
+           <widget class="QLabel" name="nutrientsLabel">
+            <property name="text">
+             <string>Custom Nutrients List</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
            <widget class="QPushButton" name="deleteNutrientButton">
             <property name="maximumSize">
              <size>
@@ -612,19 +1046,6 @@
              <string>delete row</string>
             </property>
            </widget>
-          </item>
-          <item row="0" column="1">
-           <spacer name="nutrientHorizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
           <item row="0" column="0">
            <widget class="QPushButton" name="addNutrientButton">
@@ -639,6 +1060,32 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="1">
+           <spacer name="nutrientsButtonSpacerLeft">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="3">
+           <spacer name="nutrientsButtonSpacerRight">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
          </layout>
         </item>
         <item>
@@ -652,8 +1099,20 @@
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
           <attribute name="verticalHeaderCascadingSectionResizes">
            <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
           </attribute>
          </widget>
         </item>
@@ -691,8 +1150,15 @@
     </widget>
     <addaction name="menuDatabase"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuSEED_N_FEED"/>
    <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -716,6 +1182,11 @@
   <action name="actionUse_Default">
    <property name="text">
     <string>Use Default</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

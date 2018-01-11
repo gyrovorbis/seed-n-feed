@@ -2,6 +2,7 @@
 #include "model/ration_table.h"
 #include "model/ingredients_table.h"
 #include "core/utilities.h"
+#include "ui/mainwindow.h"
 #include <QComboBox>
 #include <QCompleter>
 #include <QLineEdit>
@@ -23,28 +24,28 @@ QWidget* RationsTableDelegate::createEditor(QWidget *parent, const QStyleOptionV
     switch(index.column()) {
         case RationTable::COL_INGREDIENT: {
             const auto* rationTable = static_cast<const RationTable*>(index.model());
-            QStringList stringList = rationTable->getUnusedIngredientsList();
-            QString prevValue = index.data().toString();
-            if(!prevValue.isNull() && !prevValue.isEmpty()) stringList.push_back(prevValue);
+            QStringList ingredientsList = rationTable->getUnusedIngredientsList(index.row());
+
             QComboBox* comboBox = new QComboBox(parent);
             //comboBox->setEditable(true);
 
-            for(auto&& it : stringList) {
+            for(auto&& it : ingredientsList) {
                 comboBox->addItem(it, it);
             }
 
-            QCompleter* completer = new QCompleter(stringList);
+            //QCompleter* completer = new QCompleter(stringList);
 
-            comboBox->setCompleter(completer);
+            //comboBox->setCompleter(completer);
 
             return comboBox;
         }
+
         case RationTable::COL_DM:
         case RationTable::COL_COST_PER_DAY:
             return nullptr;
         default: {
             QLineEdit *lineEdit = new QLineEdit(parent);
-            lineEdit->setValidator(new QDoubleValidator(0.01, std::numeric_limits<double>::max(), DOUBLE_VALIDATOR_DECIMALS_MAX));
+            lineEdit->setValidator(new QDoubleValidator(0.0, std::numeric_limits<double>::max(), DOUBLE_VALIDATOR_DECIMALS_MAX));
             return lineEdit;
         }
     }
@@ -52,8 +53,17 @@ QWidget* RationsTableDelegate::createEditor(QWidget *parent, const QStyleOptionV
 void RationsTableDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
     switch(index.column()) {
     case RationTable::COL_INGREDIENT: {
-        QString value = index.model()->data(index, Qt::DisplayRole).toString();
-        static_cast<QComboBox*>(editor)->setEditText(value);
+        QString value = index.model()->data(index, Qt::EditRole).toString();
+
+        if(!value.isNull() && !value.isEmpty()) {
+            //static_cast<QComboBox*>(editor)->setEditText(value);
+
+            int index = static_cast<QComboBox*>(editor)->findText(value);
+                    MainWindow::dbgPrintf("Setting widget from Rations[Ingredient] - %s, %d", Q_CSTR(value), index);
+                    static_cast<QComboBox*>(editor)->setCurrentIndex(index);
+            //static_cast<QComboBox*>(editor)->setCurrentText(value);
+
+        }
         break;
     }
     default:
@@ -66,7 +76,9 @@ void RationsTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     switch(index.column()) {
     case RationTable::COL_INGREDIENT: {
         QComboBox* comboBox = static_cast<QComboBox*>(editor);
-        model->setData(index, comboBox->currentText());
+        QString text = comboBox->currentText();
+        bool retVal = model->setData(index, text, Qt::EditRole);
+        MainWindow::dbgPrintf("Setting Rations[Ingredient] to %s, retVal - %d", Q_CSTR(text), retVal);
         break;
     }
     default:
@@ -82,8 +94,8 @@ void RationsTableDelegate::_updateReadOnlyColumns(QAbstractItemModel* model, con
 
     if(row != -1) {
         Ingredient ingredient = ingredientsTable->ingredientFromRow(row);
-        float costPerDay    = (ration.asFed*ration.costPerUnit)/ration.weight;
-        float dm            = (ration.asFed*ingredient.dm);
+        float costPerDay    = (ration.weight != 0.0f)? (ration.asFed*ration.costPerUnit)/ration.weight : INFINITY;
+        float dm            = (ration.asFed*(ingredient.dm/100.0f));
 
         if(std::isnan(costPerDay) || std::isinf(costPerDay)) {
             rationTable->setData(rationTable->index(index.row(), RationTable::COL_COST_PER_DAY), QString());

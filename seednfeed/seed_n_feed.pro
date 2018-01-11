@@ -54,7 +54,8 @@ SOURCES += \
     source/model/recipe_table.cpp \
     source/model/nutrient_table.cpp \
     source/delegate/nutrients_table_delegate.cpp \
-    source/delegate/recipe_table_delegate.cpp
+    source/delegate/recipe_table_delegate.cpp \
+    source/model/animal_table.cpp
 
 HEADERS += \
         include/model/ingredients_table.h \
@@ -75,7 +76,8 @@ HEADERS += \
     include/model/recipe_table.h \
     include/model/nutrient_table.h \
     include/delegate/nutrients_table_delegate.h \
-    include/delegate/recipe_table_delegate.h
+    include/delegate/recipe_table_delegate.h \
+    include/model/animal_table.h
 
 FORMS += \
         form/error_warning_dialog.ui \

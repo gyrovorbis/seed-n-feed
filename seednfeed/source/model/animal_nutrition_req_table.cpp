@@ -1,6 +1,5 @@
 #include "model/animal_nutrition_req_table.h"
 #include "core/utilities.h"
-#include <QDebug>
 
 const AnimalEnergyEqnData AnimalNutritionReqTable::builtinEnergyTable[] = {
     {
@@ -21,7 +20,7 @@ const AnimalEnergyEqnData AnimalNutritionReqTable::builtinEnergyTable[] = {
     },{
         "Medium-frame heifer calves",
         10.96f,
-        0.8936f,
+        0.8936f,4
         -0.6702f
     },{
         "Large-frame heifer calves, yearling heifers",
@@ -38,7 +37,7 @@ const AnimalEnergyEqnData AnimalNutritionReqTable::builtinEnergyTable[] = {
 
 
 AnimalNutritionReqTable::AnimalNutritionReqTable(QObject* parent, QSqlDatabase db):
-    QSqlTableModel(parent, db)
+    SqlTableModel(parent, db)
 {
     setEditStrategy(QSqlTableModel::OnFieldChange);
 }
@@ -48,23 +47,23 @@ Qt::ItemFlags AnimalNutritionReqTable::flags(const QModelIndex &) const {
 }
 
 void AnimalNutritionReqTable::insertHeaderData(void) {
-    setHeaderData(COL_DESC,         Qt::Horizontal, "Description");
-    setHeaderData(COL_TYPE,         Qt::Horizontal, "Type");
-    setHeaderData(COL_WEIGHT,       Qt::Horizontal, "Weight (lb)");
-    setHeaderData(COL_DAILYGAIN,    Qt::Horizontal, "Daily Gain (lb/day)");
-    setHeaderData(COL_DMI,          Qt::Horizontal, "Dry Matter Intake (lb/day)");
-    setHeaderData(COL_NEM,          Qt::Horizontal, "NEm (MCal/day)");
-    setHeaderData(COL_NEG,          Qt::Horizontal, "NEg (MCal/day");
-    setHeaderData(COL_PROTEIN,      Qt::Horizontal, "Protein (g/day)");
-    setHeaderData(COL_CALCIUM,      Qt::Horizontal, "Calcium (g/day)");
-    setHeaderData(COL_PHOSPHORUS,   Qt::Horizontal, "Phosphorus (g/day)");
-  //  setHeaderData(COL_VITA,         Qt::Horizontal, "VitA (g/day)");
+    addHeaderData(COL_ANIMAL,           Qt::Horizontal, "Animal");
+    addHeaderData(COL_WEIGHT_MATURE,    Qt::Horizontal, "Wm", "Mature (Expected Fullly Grown) Weight (lbs)");
+    addHeaderData(COL_WEIGHT_CURRENT,   Qt::Horizontal, "Wc", "Current or Starting Weight (lbs)");
+    addHeaderData(COL_DAILYGAIN,        Qt::Horizontal, "ADG", "Average Daily Gain (lbs/day)");
+    addHeaderData(COL_DMI,              Qt::Horizontal, "DMI", "Daily Dry Matter Intake (lbs/day)");
+    addHeaderData(COL_TDN,              Qt::Horizontal, "TDN", "Daily Total Digestible Nutrients (% of DMI)");
+    addHeaderData(COL_NEM,              Qt::Horizontal, "NEm", "Daily Energy Required for Maintenance (MCal/day)");
+    addHeaderData(COL_NEG,              Qt::Horizontal, "NEg", "Daily Energy Required for Gain (MCal/day)");
+    addHeaderData(COL_PROTEIN,          Qt::Horizontal, "CP", "Daily Crude Protein (% of DMI)");
+    addHeaderData(COL_CALCIUM,          Qt::Horizontal, "Ca", "Daily Calcium Requirement (% of DMI)");
+    addHeaderData(COL_PHOSPHORUS,       Qt::Horizontal, "P", "Daily Phospohorus Requirements (% of DMI)");
+    addHeaderData(COL_VITA,             Qt::Horizontal, "VitA");
 }
-
+#if 0
 AnimalNutritionReq AnimalNutritionReqTable::nutritionReqFromRow(int row) {
     AnimalNutritionReq req;
     memset(&req, 0, sizeof(AnimalNutritionReq));
-
     if(row < rowCount()) {
         auto name = index(row, COL_DESC).data().toString();
         if(name.isEmpty() || name.isNull()) {
@@ -92,7 +91,8 @@ AnimalNutritionReq AnimalNutritionReqTable::nutritionReqFromRow(int row) {
 
     return req;
 }
-
+#endif
+#if 0
 
 int AnimalNutritionReqTable::rowFromDesc(QString desc) {
     for(int r = 0; r < rowCount(); ++r) {
@@ -102,9 +102,12 @@ int AnimalNutritionReqTable::rowFromDesc(QString desc) {
     }
     return -1;
 }
+#endif
 
 int AnimalNutritionReq::validate(QStringList& detailedText) const {
     int errors = 0;
+
+#if 0
     auto validateField = [&](bool valid, QString name) {
         if(!valid) {
             if(descValid) detailedText += QString("Nutrition Requirements '") + QString(desc) + QString("' - ");
@@ -124,7 +127,21 @@ int AnimalNutritionReq::validate(QStringList& detailedText) const {
    validateField(calciumValid,      "Calcium (g/day)");
    validateField(phosphorusValid,   "Phosphorus (g/day)");
    //validateField(vitaValid,         "Vitamin A (g/day)");
-
+#endif
     return errors;
 
+}
+
+void AnimalNutritionReqTable::setAnimalTable(AnimalTable *table) { _animalTable = table; }
+
+AnimalTable* AnimalNutritionReqTable::getAnimalTable(void) const { return _animalTable; }
+
+float AnimalNutritionReqTable::getGreatestMatureWeight(void) const {
+    float max = 1.0f;
+    iterateForColumnVariants(COL_WEIGHT_MATURE, [&](int, QVariant data) {
+        bool ok;
+        float val = data.toFloat(&ok);
+        if(ok && val > max) max = val;
+    });
+    return max;
 }

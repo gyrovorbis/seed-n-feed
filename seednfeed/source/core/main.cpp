@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-    a.setOrganizationName("Girgis Clan");
+    a.setOrganizationName("A&G Enterprises");
     a.setOrganizationDomain("elysianshadows.com");
     a.setApplicationName("Seed ~N~ Feed");
     a.setApplicationDisplayName("Seed ~N~ Feed");
