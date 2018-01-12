@@ -10,6 +10,7 @@
 #include <cfloat>
 #include <cmath>
 #include <QSqlRelationalDelegate>
+#include <QTextStream>
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -133,6 +134,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ui->adgComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onAverageDailyGainComboBoxChange(QString)));
     connect(_ui->recipeComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onRecipeComboBoxChange(QString)));
     connect(_ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(onMainTabChange(int)));
+
+    _parseAnimalRawData();
+    _parseIngredientsRowData();
 }
 
 MainWindow::~MainWindow(void)
@@ -1457,4 +1461,171 @@ void MainWindow::onMainTabChange(int index) {
 
 }
 
+void MainWindow::_parseIngredientsRowData(void) {
+    using IngTable = IngredientsTable;
+
+    auto iterateParseTokens = [](QString inputStr, char delim, std::function<void(QString, QString, int)> cb, bool extractFirstToken=true) {
+        QStringList tokens = inputStr.split(delim);
+        QString extractedValue;
+        QString outStr;
+        for(int i = 0; i < tokens.size(); ++i) {
+            QTextStream stream(&tokens[i]);
+            if(extractFirstToken) extractedValue = stream.readLine();
+            outStr = stream.readAll();
+
+            if(!outStr.isEmpty() || (extractFirstToken && !extractedValue.isEmpty()))
+                    cb(outStr, extractedValue, i);
+        }
+    };
+
+
+    auto fileColToIngCol = [](int col) -> int {
+
+        switch(col-1) {
+        case 0: return IngTable::COL_DM;
+        case 1: return IngTable::COL_TDN;
+        case 2: return IngTable::COL_NEM;
+        case 3: return IngTable::COL_NEG;
+        case 5: return IngTable::COL_PROTEIN;
+        case 13: return IngTable::COL_CA;
+        case 14: return IngTable::COL_P;
+        default: return -1;
+        }
+
+    };
+
+    QFile file("ingredient_data_raw.txt");
+
+    // Open or create the file if it does not exist
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+        QTextStream fileStream(&file);
+        QString data = fileStream.readAll();
+        file.close();
+
+        dbgPrintf("Parsing Ingredient Data");
+        dbgPush();
+
+        iterateParseTokens(data, '\n', [&](QString outStr, QString, int) {
+            QVector<QPair<int, QVariant>> initialVals;
+            int count = 0;
+            iterateParseTokens(outStr, '*', [&](QString outStr, QString value, int) {
+                if(count%2==0) {
+                    dbgPrintf("Ingredient[%s], out = %s", Q_CSTR(value), Q_CSTR(outStr));
+                    dbgPush();
+                    initialVals.push_back({ IngTable::COL_NAME, value });
+                } else {
+                    iterateParseTokens(value, ' ', [&](QString outStr, QString value, int i) {
+                        dbgPrintf("Value = %s", Q_CSTR(value));
+                        const int colIdx = fileColToIngCol(i);
+                        if(colIdx != -1) initialVals.push_back({ colIdx, value });
+
+                    });
+                }
+                if(count%2==0) dbgPop();
+                ++count;
+            });
+
+            _ingredientsTable->appendNewRow(initialVals);
+
+        }, false);
+    }
+
+}
+
+void MainWindow::_parseAnimalRawData(void) {
+    using ReqTable = AnimalNutritionReqTable;
+
+    auto iterateParseTokens = [](QString inputStr, char delim, std::function<void(QString, QString, int)> cb, bool extractFirstToken=true) {
+        QStringList tokens = inputStr.split(delim);
+        QString extractedValue;
+        QString outStr;
+        for(int i = 0; i < tokens.size(); ++i) {
+            QTextStream stream(&tokens[i]);
+            if(extractFirstToken) extractedValue = stream.readLine();
+            outStr = stream.readAll();
+
+            if(!outStr.isEmpty() || (extractFirstToken && !extractedValue.isEmpty()))
+                    cb(outStr, extractedValue, i);
+        }
+    };
+
+
+    auto fileColToReqCol = [](int col) -> int {
+
+        switch(col) {
+        case 0: return ReqTable::COL_DAILYGAIN;
+        case 1: return ReqTable::COL_DMI;
+        case 2: return ReqTable::COL_TDN;
+        case 3: return ReqTable::COL_NEM;
+        case 4: return ReqTable::COL_NEG;
+        case 5: return ReqTable::COL_PROTEIN;
+        case 6: return ReqTable::COL_CALCIUM;
+        case 7: return ReqTable::COL_PHOSPHORUS;
+        default: return -1;
+        }
+
+    };
+
+    QFile file("animal_data_raw.txt");
+
+    // Open or create the file if it does not exist
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+        QTextStream fileStream(&file);
+        QString data = fileStream.readAll();
+        file.close();
+
+        dbgPrintf("Parsing Animal Data");
+        dbgPush();
+
+        iterateParseTokens(data, '*', [&](QString outStr, QString value, int) {
+            dbgPrintf("Animal[%s]", Q_CSTR(value));
+            dbgPush();
+
+            QString animalName = value;
+            _animalTable->appendNewRow({
+                                       { AnimalTable::COL_NAME, value }
+                                       });
+            int row = _animalTable->rowCount()-1;
+
+            iterateParseTokens(outStr, '%', [&](QString outStr, QString value, int) {
+                dbgPrintf("Mature Weight = %s", Q_CSTR(value));
+                dbgPush();
+
+                QString matureWeight = value;
+
+                iterateParseTokens(outStr, '&', [&](QString outStr, QString value, int) {
+                    dbgPrintf("Current weight = %s", Q_CSTR(value));
+                    dbgPush();
+
+                    QString currentWeight = value;
+
+                    iterateParseTokens(outStr, '\n', [&](QString outStr, QString value, int) {
+                        dbgPrintf("New Group");
+                        dbgPush();
+
+                        QVector<QPair<int, QVariant>> initialVals;
+
+                        iterateParseTokens(outStr, ' ', [&](QString outStr, QString value, int i) {
+                            dbgPrintf("Val = %s", Q_CSTR(value));
+                            const int colIdx = fileColToReqCol(i);
+                            if(colIdx != -1) initialVals.push_back({ colIdx, value });
+
+                        });
+                        initialVals.push_back({ ReqTable::COL_ANIMAL, animalName });
+                        initialVals.push_back({ ReqTable::COL_WEIGHT_MATURE, matureWeight });
+                        initialVals.push_back({ ReqTable::COL_WEIGHT_CURRENT, currentWeight });
+                        _animalNutritionReqTable->appendNewRow(initialVals);
+                        dbgPop();
+                    }, false);
+                    dbgPop();
+                });
+                dbgPop();
+            });
+            dbgPop();
+        });
+        dbgPop();
+    }
+}
 

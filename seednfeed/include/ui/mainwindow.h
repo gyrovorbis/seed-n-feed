@@ -101,6 +101,9 @@ private:
 
     void                _updateCalculationTabWidgets(void);
 
+    void                _parseAnimalRawData(void);
+    void                _parseIngredientsRowData(void);
+
     static void         logQ(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static void         _writeLog(const char* str);
 
