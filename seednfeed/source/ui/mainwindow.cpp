@@ -135,8 +135,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ui->recipeComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onRecipeComboBoxChange(QString)));
     connect(_ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(onMainTabChange(int)));
 
-    _parseAnimalRawData();
-    _parseIngredientsRowData();
+    //_parseAnimalRawData();
+    //_parseIngredientsRowData();
 }
 
 MainWindow::~MainWindow(void)
