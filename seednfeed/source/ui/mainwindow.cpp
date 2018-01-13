@@ -313,10 +313,9 @@ bool MainWindow::_tableInit(void) {
 
     _ui->animalComboBox->setSrcModelColumn(_animalTable, AnimalTable::COL_NAME);
     _ui->animalComboBox->setEmptyErrorString("No Animal Types found! Please create one.");
-    _ui->animalComboBox->populate();
     _ui->recipeComboBox->setSrcModelColumn(_recipeTable, RecipeTable::COL_NAME);
     _ui->animalComboBox->setEmptyErrorString("No Recipes found! Please create one.");
-    _ui->recipeComboBox->populate();
+
 
     _ui->matureWeightComboBox->setSrcModelColumn(_animalNutritionReqTable, AnimalNutritionReqTable::COL_WEIGHT_MATURE);
     _ui->matureWeightComboBox->setFilterCallback([&](const QModelIndex& index) {
@@ -339,6 +338,8 @@ bool MainWindow::_tableInit(void) {
              && entry.getColumnVariant(AnimalNutritionReqTable::COL_WEIGHT_CURRENT).toString()   == _ui->currentWeightComboBox->currentText());
     });
 
+    _ui->animalComboBox->populate();
+    _ui->recipeComboBox->populate();
     onAnimalComboBoxChange("FUCKING UPDATE!!!");
 
     connect(_recipeTable, SIGNAL(cellDataChanged(int,int,QVariant,QVariant,int)), this, SLOT(onRecipeValueChanged(int,int,QVariant,QVariant,int)));
@@ -377,6 +378,8 @@ bool MainWindow::_dbInit(QString dbType) {
         dbgPrintf("Creating a new database file: [%s]", Q_CSTR(dbFileInfo.absoluteFilePath()));
         createNewDb = true;
     }
+
+    if(_db.isOpen()) _db.close();
 
     dbgPrintf("Setting DB connection type: %s", Q_CSTR(dbType));
     _db = QSqlDatabase::addDatabase(dbType);
