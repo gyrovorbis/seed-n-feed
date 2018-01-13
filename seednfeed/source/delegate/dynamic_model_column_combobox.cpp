@@ -34,7 +34,10 @@ void DynamicModelColumnComboBox::populate(void) {
         }
     }
 
-    for(int i = 0; i < list.count(); ++i) addItem(list[i]);
+    for(int i = 0; i < list.count(); ++i) {
+        addItem(list[i]);
+        setItemData(count()-1, list[i], Qt::ToolTipRole);
+    }
 
     blockSignals(false);
 

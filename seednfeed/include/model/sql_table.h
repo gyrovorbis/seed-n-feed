@@ -171,7 +171,7 @@ public slots:
 
 //======== INLINEZ ========
 inline QString SqlTableModel::ColumnEntry::toSqlString(void) const {
-    return name + QString(" ") + type + QString(" ") + other;
+    return  QString("\"") + name + QString("\"") + QString(" ") + type + QString(" ") + other;
 }
 
 inline bool SqlTableModel::isOpen(void) const {

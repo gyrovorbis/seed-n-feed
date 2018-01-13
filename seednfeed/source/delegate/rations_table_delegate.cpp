@@ -31,6 +31,7 @@ QWidget* RationsTableDelegate::createEditor(QWidget *parent, const QStyleOptionV
 
             for(auto&& it : ingredientsList) {
                 comboBox->addItem(it, it);
+                comboBox->setItemData(comboBox->count()-1, it, Qt::ToolTipRole);
             }
 
             //QCompleter* completer = new QCompleter(stringList);

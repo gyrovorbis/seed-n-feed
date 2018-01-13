@@ -4,5 +4,6 @@
         <file>defaults.db</file>
         <file>add_icon.png</file>
         <file>remove_icon.png</file>
+        <file>check_icon.png</file>
     </qresource>
 </RCC>

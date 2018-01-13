@@ -185,8 +185,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ui->recipeComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onRecipeComboBoxChange(QString)));
     connect(_ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(onMainTabChange(int)));
 
-    _parseAnimalRawData();
-    _parseIngredientsRowData();
+    //_parseAnimalRawData();
+    //_parseIngredientsRowData();
 
     auto prefetch = [](QSqlTableModel* model) {
         while(model->canFetchMore()) model->fetchMore();
@@ -555,6 +555,11 @@ void MainWindow::onAddIngredientClick(bool) {
 }
 
 void MainWindow::onAddAnimalNutritionReqClick(bool) {
+    if(!_animalTable->rowCount()) {
+        QMessageBox::critical(this, "Add Requirements Failed!", "You must first add an Animal Type before you can add a Nutritional Requirement to it!");
+        return;
+    }
+
     dbgPrintf("MainWindow::onAddNutritionReqClick");
     dbgPush();
     auto selectedIndices = _animalWidget->getView()->selectionModel()->selectedRows();
@@ -629,6 +634,11 @@ void MainWindow::onDeleteAnimalNutritionReqClick(bool) {
 }
 
 void MainWindow::onAddRationClick(bool) {
+    if(!_recipeTable->rowCount()) {
+        QMessageBox::critical(this, "Add Ration Failed!", "You must first add a Recipe before you can add a Ration to it.");
+        return;
+    }
+
     dbgPrintf("MainWindow::onAddRationClick");
     dbgPush();
 

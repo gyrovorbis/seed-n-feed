@@ -30,13 +30,15 @@ void SqlTableView::onCustomContextMenu(const QPoint& point) {
 
 
     }, model());
+#if 0
     menu.insertAction("Selection Only", [&](bool) {
 
 
     }, /*selectionModel()->hasSelection()*/ false);
-
+#endif
     menu.pop();
 
+#if 0
     menu.push("Import from CSV");
     menu.insertAction("Entire Table", [&](bool){
         QString fileName = QFileDialog::getOpenFileName(this, "Save File", QDir::current().absolutePath(), "Spreadsheet (CSV) File (*.csv)");
@@ -49,6 +51,7 @@ void SqlTableView::onCustomContextMenu(const QPoint& point) {
     }, true);
     menu.insertAction("Append Rows", [&](bool){}, false);
     menu.pop();
+#endif
 
     menu.first()->exec(mapToGlobal(point));
 }

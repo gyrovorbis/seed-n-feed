@@ -78,7 +78,15 @@ bool SqlTableModel::exportCSV(const QAbstractItemModel* model, QString filePath)
              for( int column = 0; column < model->columnCount(); column++ )
              {
                  // Write in stringList each table entry
-                 stringList << model->data(model->index(row, column)).toString();
+                 QString str = model->data(model->index(row, column)).toString();
+
+                 auto invChar = [=](char inv) {
+                     return str.split(inv).size() > 1;
+                 };
+
+                 if(invChar(',') || invChar('"') || invChar('\n')) stringList << QString("\"") + str + QString("\"");
+                 else stringList << str;
+
              }
              /* Then send the entire file stringList by adding text flow dividers
               * in the form of "" and putting at the end of a line terminator
@@ -156,7 +164,7 @@ bool SqlTableModel::addSqlColumn(QString colName, QString dataType, QVariant def
     }
 
     sprintf(sqlCmdBuff,
-            "ALTER TABLE %s\n\tADD COLUMN %s %s %s %s;", Q_CSTR(tableName()), Q_CSTR(colName), Q_CSTR(dataType), defValBuff, Q_CSTR(other));
+            "ALTER TABLE %s\n\tADD COLUMN %s %s %s %s;", Q_CSTR(tableName()),  Q_CSTR((QString("\"") + colName + QString("\""))), Q_CSTR(dataType), defValBuff, Q_CSTR(other));
 
     if(!query.exec(sqlCmdBuff)) {
         MainWindow::dbgPrintf("Query Failed with Error: %s", Q_CSTR(query.lastError().text()));
@@ -183,7 +191,7 @@ bool SqlTableModel::_normalDropSqlColumn(QString colName) {
     char sqlCmdBuff[SQL_TABLE_MODEL_MAX_QUERY_SIZE];
 
     sprintf(sqlCmdBuff,
-            "ALTER TABLE %s\n\tDROP %s;", Q_CSTR(tableName()), Q_CSTR(colName));
+            "ALTER TABLE %s\n\tDROP %s;", Q_CSTR(tableName()),  Q_CSTR(QString("\"") + colName + QString("\"")));
 
     if(!query.exec(sqlCmdBuff)) {
         MainWindow::dbgPrintf("Query Failed with Error: %s", Q_CSTR(query.lastError().text()));
@@ -218,7 +226,7 @@ bool SqlTableModel::changeSqlColumnDataType(QString colName, QString dataType) {
     char sqlCmdBuff[SQL_TABLE_MODEL_MAX_QUERY_SIZE];
     sprintf(sqlCmdBuff,
             "ALTER TABLE %s"
-            "ALTER COLUMN %s %s;", Q_CSTR(tableName()), Q_CSTR(colName), Q_CSTR(dataType));
+            "ALTER COLUMN %s %s;", Q_CSTR(tableName()),  Q_CSTR(QString("\"") + colName + QString("\"")), Q_CSTR(dataType));
 
     if(!query.exec(sqlCmdBuff)) {
         MainWindow::dbgPrintf("Query Failed with Error: %s", Q_CSTR(query.lastError().text()));
@@ -237,7 +245,7 @@ bool SqlTableModel::_normalRenameSqlColumn(QString oldName, QString newName) {
     char sqlCmdBuff[SQL_TABLE_MODEL_MAX_QUERY_SIZE];
     sprintf(sqlCmdBuff,
             "ALTER TABLE %s"
-            "RENAME COLUMN %s %s;", Q_CSTR(tableName()), Q_CSTR(oldName), Q_CSTR(newName));
+            "RENAME COLUMN %s %s;", Q_CSTR(tableName()),  Q_CSTR(QString("\"") + oldName + QString("\"")),  Q_CSTR(QString("\"") + newName + QString("\"")));
 
     if(!query.exec(sqlCmdBuff)) {
         MainWindow::dbgPrintf("Query Failed with Error: %s", Q_CSTR(query.lastError().text()));
@@ -284,8 +292,8 @@ bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
     QString dstColInitStrings;
 
     for(int i = 0; i < srcColEntries.size(); ++i) {
-        srcColNameStrings += srcColEntries[i].name;
-        dstColNameStrings += dstColEntries[i].name;
+        srcColNameStrings += QString("\"") + srcColEntries[i].name + QString("\"");
+        dstColNameStrings += QString("\"") + dstColEntries[i].name + QString("\"");
         dstColInitStrings += dstColEntries[i].toSqlString();
         if(i + 1 < srcColEntries.size()) {
             srcColNameStrings += ", ";

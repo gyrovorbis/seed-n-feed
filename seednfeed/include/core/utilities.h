@@ -27,7 +27,7 @@
 #   define GYRO_BUILD_COMMIT   UNKNOWN
 #endif
 
-#define Q_CSTR(a) (a.toStdString().c_str())
+#define Q_CSTR(a) ((a).toStdString().c_str())
 
 #define KG_PER_LB                       0.453592
 #define DOUBLE_VALIDATOR_DECIMALS_MAX   10
