@@ -55,7 +55,8 @@ SOURCES += \
     source/model/nutrient_table.cpp \
     source/delegate/nutrients_table_delegate.cpp \
     source/delegate/recipe_table_delegate.cpp \
-    source/model/animal_table.cpp
+    source/model/animal_table.cpp \
+    source/ui/sql_table_manager_widget.cpp
 
 HEADERS += \
         include/model/ingredients_table.h \
@@ -77,11 +78,13 @@ HEADERS += \
     include/model/nutrient_table.h \
     include/delegate/nutrients_table_delegate.h \
     include/delegate/recipe_table_delegate.h \
-    include/model/animal_table.h
+    include/model/animal_table.h \
+    include/ui/sql_table_manager_widget.h
 
 FORMS += \
         form/error_warning_dialog.ui \
-    form/mainwindow.ui
+    form/mainwindow.ui \
+    form/sql_table_manager_widget.ui
 
 RESOURCES += \
     resource/resource.qrc

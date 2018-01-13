@@ -11,6 +11,7 @@
 #include <cmath>
 #include <QSqlRelationalDelegate>
 #include <QTextStream>
+#include <QSplitter>
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -19,6 +20,8 @@
 #include "ui_error_warning_dialog.h"
 
 #include "ui/mainwindow.h"
+#include "ui/sql_table_view.h"
+#include "ui/sql_table_manager_widget.h"
 #include "core/utilities.h"
 #include "model/ingredients_table.h"
 #include "model/animal_nutrition_req_table.h"
@@ -37,9 +40,18 @@
 #define SPRINTF_TEMP_BUFF_SIZE  2048
 
 //===== STATIC =====
+MainWindow* MainWindow::_instance = nullptr;
+FILE* MainWindow::_dbgLogFile   = nullptr;
+int MainWindow::_logDepth       = 0;
+QSqlDatabase MainWindow::_db;
 
-FILE* MainWindow::_dbgLogFile = nullptr;
-int MainWindow::_logDepth   = 0;
+MainWindow* MainWindow::getInstance(void) {
+    return _instance;
+}
+
+QSqlDatabase MainWindow::getDb(void) {
+    return _db;
+}
 
 void MainWindow::_writeLog(const char* str) {
     char buff[SPRINTF_TEMP_BUFF_SIZE] = { 0 };
@@ -87,8 +99,15 @@ void MainWindow::logQ(QtMsgType /*type*/, const QMessageLogContext &context, con
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    _ui(new Ui::MainWindow)
+    _ui(new Ui::MainWindow),
+    _recipeWidget(new SqlTableManagerWidget("Recipes")),
+    _rationWidget(new SqlTableManagerWidget("Rations")),
+    _animalWidget(new SqlTableManagerWidget("Animals")),
+    _reqWidget(new SqlTableManagerWidget("Animal Requirements")),
+    _ingWidget(new SqlTableManagerWidget("Ingredients")),
+    _nutWidget(new SqlTableManagerWidget("Nutrients"))
 {
+    _instance = this;
     _ui->setupUi(this);
 
     _debugInit();
@@ -96,20 +115,49 @@ MainWindow::MainWindow(QWidget *parent) :
     _dbInit();
     _tableInit();
 
-    _ui->ingredientsTableView->setItemDelegate(new IngredientsTableDelegate);
-    _ui->animalNutritionReqTableView->setItemDelegate(new AnimalNutritionTableDelegate);
-    //_ui->nutritionalTotalsTableWidget->setItemDelegate(new TotalsTableDelegate);
-    _ui->rationTableView->setItemDelegate(new RationsTableDelegate);
-    _ui->nutrientsTableView->setItemDelegate(new NutrientsTableDelegate);
-    _ui->recipeTableView->setItemDelegate(new RecipeTableDelegate);
+    _ingWidget->getView()->setItemDelegate(new IngredientsTableDelegate);
+    _reqWidget->getView()->setItemDelegate(new AnimalNutritionTableDelegate);
+    _rationWidget->getView()->setItemDelegate(new RationsTableDelegate);
+    _nutWidget->getView()->setItemDelegate(new NutrientsTableDelegate);
+    _recipeWidget->getView()->setItemDelegate(new RecipeTableDelegate);
+
+    auto* layout = new QHBoxLayout();
+    layout->setSpacing(0);
+    layout->setMargin(0);
+    QSplitter* splitter = new QSplitter(Qt::Vertical);
+    splitter->addWidget(_recipeWidget);
+    splitter->addWidget(_rationWidget);
+    layout->addWidget(splitter);
+    _ui->recipeTab->setLayout(layout);
+
+    layout = new QHBoxLayout();
+    layout->setSpacing(0);
+    layout->setMargin(0);
+    splitter = new QSplitter(Qt::Vertical);
+    splitter->addWidget(_animalWidget);
+    splitter->addWidget(_reqWidget);
+    layout->addWidget(splitter);
+    _ui->animalsTab->setLayout(layout);
+
+    layout = new QHBoxLayout();
+    layout->setSpacing(0);
+    layout->setMargin(0);
+    layout->addWidget(_ingWidget);
+    _ui->ingredientsTab->setLayout(layout);
+
+    layout = new QHBoxLayout();
+    layout->setSpacing(0);
+    layout->setMargin(0);
+    layout->addWidget(_nutWidget);
+    _ui->nutrientsTab->setLayout(layout);
 
     _ui->nutritionalTotalsTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     _ui->calculationResultTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
-    _ui->animalNutritionReqTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
-    _ui->ingredientsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
-    _ui->rationTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
-    _ui->recipeTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
-    _ui->nutrientsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    _reqWidget->getView()->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    _ingWidget->getView()->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    _rationWidget->getView()->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    _recipeWidget->getView()->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    _nutWidget->getView()->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
 
     _ui->startDateEdit->setDate(QDate::currentDate());
 
@@ -117,16 +165,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //connect(ui->act);
 
-    connect(_ui->addIngredientButton, SIGNAL(clicked(bool)), this , SLOT(onAddIngredientClick(bool)));
-    connect(_ui->deleteIngredientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteIngredientClick(bool)));
-    connect(_ui->addRationButton, SIGNAL(clicked(bool)), this, SLOT(onAddRationClick(bool)));
-    connect(_ui->deleteRationButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteRationClick(bool)));
-    connect(_ui->addAnimalNutritionReqButton, SIGNAL(clicked(bool)), this , SLOT(onAddAnimalNutritionReqClick(bool)));
-    connect(_ui->deleteAnimalNutritionReqButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteAnimalNutritionReqClick(bool)));
-    connect(_ui->recipeAddButton, SIGNAL(clicked(bool)), this, SLOT(onAddRecipeClick(bool)));
-    connect(_ui->recipeDeleteButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteRecipeClick(bool)));
-    connect(_ui->addNutrientButton, SIGNAL(clicked(bool)), this, SLOT(onAddNutrientClick(bool)));
-    connect(_ui->deleteNutrientButton, SIGNAL(clicked(bool)), this, SLOT(onDeleteNutrientClick(bool)));
+    connect(_ingWidget, SIGNAL(addClicked(bool)), this , SLOT(onAddIngredientClick(bool)));
+    connect(_ingWidget, SIGNAL(removeClicked(bool)), this, SLOT(onDeleteIngredientClick(bool)));
+    connect(_rationWidget, SIGNAL(addClicked(bool)), this, SLOT(onAddRationClick(bool)));
+    connect(_rationWidget, SIGNAL(removeClicked(bool)), this, SLOT(onDeleteRationClick(bool)));
+    connect(_animalWidget, SIGNAL(addClicked(bool)), this , SLOT(on_addAnimalTypeButton_clicked(bool)));
+    connect(_animalWidget, SIGNAL(removeClicked(bool)), this, SLOT(on_deleteAnimalTypeButton_clicked(bool)));
+    connect(_reqWidget, SIGNAL(addClicked(bool)), this , SLOT(onAddAnimalNutritionReqClick(bool)));
+    connect(_reqWidget, SIGNAL(removeClicked(bool)), this, SLOT(onDeleteAnimalNutritionReqClick(bool)));
+    connect(_recipeWidget, SIGNAL(addClicked(bool)), this, SLOT(onAddRecipeClick(bool)));
+    connect(_recipeWidget, SIGNAL(removeClicked(bool)), this, SLOT(onDeleteRecipeClick(bool)));
+    connect(_nutWidget, SIGNAL(addClicked(bool)), this, SLOT(onAddNutrientClick(bool)));
+    connect(_nutWidget, SIGNAL(removeClicked(bool)), this, SLOT(onDeleteNutrientClick(bool)));
     connect(_ui->calculatePushButton, SIGNAL(clicked(bool)), this, SLOT(onCalculateButtonClick(bool)));
     connect(_ui->animalComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onAnimalComboBoxChange(QString)));
     connect(_ui->matureWeightComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onMatureWeightComboBoxChange(QString)));
@@ -135,12 +185,28 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ui->recipeComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onRecipeComboBoxChange(QString)));
     connect(_ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(onMainTabChange(int)));
 
-    //_parseAnimalRawData();
-    //_parseIngredientsRowData();
+    _parseAnimalRawData();
+    _parseIngredientsRowData();
+
+    auto prefetch = [](QSqlTableModel* model) {
+        while(model->canFetchMore()) model->fetchMore();
+    };
+
+    prefetch(_nutrientTable);
+    prefetch(_animalTable);
+    prefetch(_animalNutritionReqTable);
+    prefetch(_ingredientsTable);
+    prefetch(_rationTable);
+    prefetch(_recipeTable);
 }
 
 MainWindow::~MainWindow(void)
 {
+    _db.close();
+    //delete _recipeWidget;
+    //delete _rationWidget;
+    //delete _animalWidget;
+    //delete _reqWidget;
     //delete _errorDialog;
     //delete _warnDialog;
     fclose(_dbgLogFile);
@@ -197,43 +263,47 @@ bool MainWindow::_tableInit(void) {
     _nutrientTable->protectedSelect();
     _nutrientTable->insertHeaderData();
     _nutrientTable->setIngredientsTable(_ingredientsTable);
-    _ui->nutrientsTableView->setModel(_nutrientTable);
+    _nutWidget->getView()->setModel(_nutrientTable);
 
 
     _ingredientsTable->setTable("Ingredients");
     _ingredientsTable->protectedSelect();
     _ingredientsTable->setNutrientTable(_nutrientTable);
     _ingredientsTable->insertHeaderData();
-    _ui->ingredientsTableView->setModel(_ingredientsTable);
+    _ingWidget->getView()->setModel(_ingredientsTable);
 
 
     _recipeTable->setTable("Recipes");
     _recipeTable->protectedSelect();
     _recipeTable->insertHeaderData();
-    _ui->recipeTableView->setModel(_recipeTable);
+    _recipeWidget->getView()->setModel(_recipeTable);
 
 
     RationsTableDelegate::setIngredientsTable(_ingredientsTable);
     _rationTable->setIngredientsTable(_ingredientsTable);
     _rationTable->setRecipeTable(_recipeTable);
-    _ui->rationTableView->setModel(_rationTable);
+    _rationWidget->getView()->setModel(_rationTable);
     _rationTable->setTable("Rations");
+    //onMainTabChange(MAIN_TAB_RECIPES);
     //_rationTable->select();
     //_rationTable->insertHeaderData();
 
    // _rationTable->setRelation(RationTable::COL_RECIPE, QSqlRelation("Recipes", "name", "name"));
    // _rationTable->setRelation(RationTable::COL_INGREDIENT, QSqlRelation("Ingredients", "name", "name"));
-    //_ui->rationTableView->setModel(_rationTable);
-  //  _ui->rationTableView->setColumnHidden(RationTable::COL_RECIPE, true);
-    //_ui->rationTableView->setItemDelegate(new QSqlRelationalDelegate(_ui->rationTableView));
+    //_rationWidget->getView()->setModel(_rationTable);
+  //  _rationWidget->getView()->setColumnHidden(RationTable::COL_RECIPE, true);
+    //_rationWidget->getView()->setItemDelegate(new QSqlRelationalDelegate(_rationWidget->getView()));
 
     _animalTable->setTable("Animals");
     _animalTable->protectedSelect();
     _animalTable->insertHeaderData();
-    _ui->animalTableView->setModel(_animalTable);
+    _animalWidget->getView()->setModel(_animalTable);
 
-    _ui->animalNutritionReqTableView->setModel(_animalNutritionReqTable);
+    _reqWidget->getView()->setModel(_animalNutritionReqTable);
+    _animalTable->protectedSelect();
+    _animalTable->insertHeaderData();
     _animalNutritionReqTable->setTable("AnimalNutritionReq");
+    //onMainTabChange(MAIN_TAB_ANIMALS);
     //_animalNutritionReqTable->protectedSelect();
     //_animalNutritionReqTable->insertHeaderData();
     _animalNutritionReqTable->setAnimalTable(_animalTable);
@@ -272,10 +342,10 @@ bool MainWindow::_tableInit(void) {
     onAnimalComboBoxChange("FUCKING UPDATE!!!");
 
     connect(_recipeTable, SIGNAL(cellDataChanged(int,int,QVariant,QVariant,int)), this, SLOT(onRecipeValueChanged(int,int,QVariant,QVariant,int)));
-    connect(_ui->recipeTableView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&,const QModelIndex&)), this, SLOT(onRecipeSelectionChanged(const QModelIndex&,const QModelIndex&)));
+    connect(_recipeWidget->getView()->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&,const QModelIndex&)), this, SLOT(onRecipeSelectionChanged(const QModelIndex&,const QModelIndex&)));
 
     connect(_animalTable, SIGNAL(cellDataChanged(int,int,QVariant,QVariant,int)), this, SLOT(onAnimalValueChanged(int,int,QVariant,QVariant,int)));
-    connect(_ui->animalTableView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&,const QModelIndex&)), this, SLOT(onAnimalSelectionChanged(const QModelIndex&,const QModelIndex&)));
+    connect(_animalWidget->getView()->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&,const QModelIndex&)), this, SLOT(onAnimalSelectionChanged(const QModelIndex&,const QModelIndex&)));
 
     _updateCalculationTabWidgets();
 
@@ -312,6 +382,8 @@ bool MainWindow::_dbInit(QString dbType) {
     _db = QSqlDatabase::addDatabase(dbType);
     _db.setDatabaseName(dbPath);
 
+
+    _db.setConnectOptions("QSQLITE_BUSY_TIMEOUT=999;QSQLITE_ENABLE_SHARED_CACHE=1"); // use an SSL connection to the server
     if(!_db.open()) {
         dbgPrintf("Database connection failed [Path: %s] [LastError: %s]", Q_CSTR(dbPath), Q_CSTR(_db.lastError().text()));
         success = false;
@@ -352,7 +424,7 @@ bool MainWindow::_dbInit(QString dbType) {
     _animalNutritionReqTable->addColumnData("phosphorus", "real", 0.0);
     _animalNutritionReqTable->addColumnData("vita", "real", 0.0);
     _animalNutritionReqTable->addColumnRelationship(AnimalNutritionReqTable::COL_ANIMAL, AnimalTable::COL_NAME, _animalTable);
-    _animalNutritionReqTable->addColumnsFromRowsRelationship(NutrientTable::COL_NAME, _nutrientTable, "real", 0.0);
+
 
     _ingredientsTable->addColumnData("name", "varchar(" STRINGIFY_MACRO(INGREDIENT_NAME_SIZE) ")", QString(), "primary key");
     _ingredientsTable->addColumnData("dm", "real", 0.0);
@@ -364,6 +436,7 @@ bool MainWindow::_dbInit(QString dbType) {
     _ingredientsTable->addColumnData("p", "real", 0.0);
     _ingredientsTable->addColumnData("vita", "real", 0.0);
     _ingredientsTable->addColumnsFromRowsRelationship(NutrientTable::COL_NAME, _nutrientTable, "real", 0.0);
+    _animalNutritionReqTable->addColumnsFromRowsRelationship(NutrientTable::COL_NAME, _nutrientTable, "real", 0.0);
 
     _recipeTable->addColumnData("name", "varchar(" STRINGIFY_MACRO(RECIPE_NAME_SIZE) ")", QString(), "primary key");
 
@@ -481,7 +554,7 @@ void MainWindow::onAddIngredientClick(bool) {
 void MainWindow::onAddAnimalNutritionReqClick(bool) {
     dbgPrintf("MainWindow::onAddNutritionReqClick");
     dbgPush();
-    auto selectedIndices = _ui->animalTableView->selectionModel()->selectedRows();
+    auto selectedIndices = _animalWidget->getView()->selectionModel()->selectedRows();
     //Q_ASSERT(selectedIndices.size() == 1);
     if(selectedIndices.size() >= 1) {
         auto selected = selectedIndices[0];
@@ -497,7 +570,7 @@ void MainWindow::onAddAnimalNutritionReqClick(bool) {
                 { AnimalNutritionReqTable::COL_WEIGHT_CURRENT, matureWeight-1.0f },
                 { AnimalNutritionReqTable::COL_DMI, 0.5f }
              });
-             _ui->animalNutritionReqTableView->scrollToBottom();
+             _reqWidget->getView()->scrollToBottom();
         } else {
             dbgPrintf("onAddAnimalNutritionReqClick() - WTF invalid selection index!?");
             Q_ASSERT(false);
@@ -511,7 +584,7 @@ void MainWindow::onDeleteIngredientClick(bool) {
     dbgPush();
 
     // check which row(s) is/are selected (if any)
-    QItemSelectionModel *select = _ui->ingredientsTableView->selectionModel();
+    QItemSelectionModel *select = _ingWidget->getView()->selectionModel();
 
     QModelIndexList selectedRows = select->selectedRows();
     if(selectedRows.size()) {
@@ -537,7 +610,7 @@ void MainWindow::onDeleteAnimalNutritionReqClick(bool) {
     dbgPrintf("MainWindow::onDeleteAnimalNutritionReqClick");
     dbgPush();
     // check which row(s) is/are selected (if any)
-    QItemSelectionModel *select = _ui->animalNutritionReqTableView->selectionModel();
+    QItemSelectionModel *select = _reqWidget->getView()->selectionModel();
     if(!select) return;
 
     QModelIndexList selectedRows = select->selectedRows();
@@ -556,7 +629,7 @@ void MainWindow::onAddRationClick(bool) {
     dbgPrintf("MainWindow::onAddRationClick");
     dbgPush();
 
-    auto selectedIndices = _ui->recipeTableView->selectionModel()->selectedRows();
+    auto selectedIndices = _recipeWidget->getView()->selectionModel()->selectedRows();
     //Q_ASSERT(selectedIndices.size() == 1);
     if(selectedIndices.size() >= 1) {
         auto selected = selectedIndices[0];
@@ -576,7 +649,7 @@ void MainWindow::onAddRationClick(bool) {
                                         { RationTable::COL_RECIPE, recipeName },
                                         { RationTable::COL_INGREDIENT, unusedIngredients.first() }
                                        });
-            _ui->rationTableView->scrollToBottom();
+            _rationWidget->getView()->scrollToBottom();
 
         } else {
             Q_ASSERT(false);
@@ -591,7 +664,7 @@ void MainWindow::onDeleteRationClick(bool) {
     dbgPrintf("MainWindow::onDeleteRationClick");
     dbgPush();
     // check which row(s) is/are selected (if any)
-    QItemSelectionModel *select = _ui->rationTableView->selectionModel();
+    QItemSelectionModel *select = _rationWidget->getView()->selectionModel();
     if(!select) {
         dbgPop();
         return;
@@ -1094,7 +1167,7 @@ void MainWindow::onAddRecipeClick(bool) {
     if(_recipeTable->appendNewRow({
                                    {RecipeTable::COL_NAME, newName}
     })) {
-        _ui->recipeTableView->selectRow(_recipeTable->rowCount()-1);
+        _recipeWidget->getView()->selectRow(_recipeTable->rowCount()-1);
     }
     dbgPop();
 }
@@ -1104,7 +1177,7 @@ void MainWindow::onDeleteRecipeClick(bool) {
     dbgPrintf("MainWindow::onDeleteRecipeClick");
     dbgPush();
     // check which row(s) is/are selected (if any)
-    QItemSelectionModel *select = _ui->recipeTableView->selectionModel();
+    QItemSelectionModel *select = _recipeWidget->getView()->selectionModel();
     QModelIndexList selectedRows = select->selectedRows();
     int lowestRow = _recipeTable->rowCount()-1;
 
@@ -1119,8 +1192,8 @@ void MainWindow::onDeleteRecipeClick(bool) {
         }
         if(_recipeTable->deleteRows(selectedRows) && _recipeTable->rowCount()) {
             if(lowestRow >= 0 && lowestRow < _recipeTable->rowCount()) {
-                _ui->recipeTableView->selectRow(lowestRow);
-            } else _ui->recipeTableView->selectRow(0);
+                _recipeWidget->getView()->selectRow(lowestRow);
+            } else _recipeWidget->getView()->selectRow(0);
 
         }
 
@@ -1133,10 +1206,10 @@ void MainWindow::onDeleteRecipeClick(bool) {
 void MainWindow::onRecipeSelectionChanged(const QModelIndex& selected, const QModelIndex&) {
     dbgPrintf("MainWindow::onRecipeSelectionChanged");
     dbgPush();
-    //_ui->rationTableView->setEnabled(selected.isValid());
-    _ui->rationTableView->setModel(_rationTable);
+    //_rationWidget->getView()->setEnabled(selected.isValid());
+    _rationWidget->getView()->setModel(_rationTable);
     _rationTable->insertHeaderData();
-    _ui->rationTableView->setColumnHidden(RationTable::COL_RECIPE, true);
+    _rationWidget->getView()->setColumnHidden(RationTable::COL_RECIPE, true);
 
     if(selected.isValid()) {
 
@@ -1154,12 +1227,12 @@ void MainWindow::onRecipeSelectionChanged(const QModelIndex& selected, const QMo
 void MainWindow::onRecipeValueChanged(int row, int, QVariant, QVariant, int) {
     dbgPrintf("MainWindow::onRecipeValueChanged");
     dbgPush();
-    if(_ui->recipeTableView->selectionModel()->hasSelection()) {
-        auto selectedList = _ui->recipeTableView->selectionModel()->selectedRows();
+    if(_recipeWidget->getView()->selectionModel()->hasSelection()) {
+        auto selectedList = _recipeWidget->getView()->selectionModel()->selectedRows();
 
         for(auto& index : selectedList) {
             if(index.row() == row) {
-                _ui->recipeTableView->selectRow(row);
+                _recipeWidget->getView()->selectRow(row);
                 onRecipeSelectionChanged(index, QModelIndex());
                 break;
             }
@@ -1172,10 +1245,14 @@ void MainWindow::onRecipeValueChanged(int row, int, QVariant, QVariant, int) {
 void MainWindow::onAddNutrientClick(bool) {
     dbgPrintf("MainWindow::onAddNutrientClick");
     dbgPush();
+
     QString newName = _nutrientTable->makeColumnDataUnique(NutrientTable::COL_NAME, "New_Nutrient_");
+
+    _reqWidget->getView()->setModel(nullptr);
     _nutrientTable->appendNewRow({
                                      {NutrientTable::COL_NAME, newName}
                                  });
+    _reqWidget->getView()->setModel(_animalNutritionReqTable);
     dbgPop();
 
 }
@@ -1184,12 +1261,13 @@ void MainWindow::onDeleteNutrientClick(bool) {
     dbgPrintf("MainWindow::onDeleteNutrientClick");
     dbgPush();
     // check which row(s) is/are selected (if any)
-    QItemSelectionModel *select = _ui->nutrientsTableView->selectionModel();
+    QItemSelectionModel *select = _nutWidget->getView()->selectionModel();
 
     QModelIndexList selectedRows = select->selectedRows();
     if(selectedRows.size()) {
         QStringList names;
         for(auto it: selectedRows) {
+
             names << it.data().toString();
         }
         for(auto it: names) {
@@ -1246,7 +1324,7 @@ void MainWindow::on_actionAbout_triggered() {
         QString("<i>Copyright 2017, 2018 A&G Enterprises</i><br>"));
 }
 
-void MainWindow::on_addAnimalTypeButton_clicked()
+void MainWindow::on_addAnimalTypeButton_clicked(bool)
 {
     dbgPrintf("MainWindow::onAddAnimalTypeButtonClicked");
     dbgPush();
@@ -1254,17 +1332,17 @@ void MainWindow::on_addAnimalTypeButton_clicked()
     if(_animalTable->appendNewRow({
                                    {AnimalTable::COL_NAME, newName}
     })) {
-        _ui->animalTableView->selectRow(_animalTable->rowCount()-1);
+        _animalWidget->getView()->selectRow(_animalTable->rowCount()-1);
     }
     dbgPop();
 }
 
-void MainWindow::on_deleteAnimalTypeButton_clicked()
+void MainWindow::on_deleteAnimalTypeButton_clicked(bool)
 {
     dbgPrintf("MainWindow::onDeleteAnimalTypeButtonClicked");
     dbgPush();
     // check which row(s) is/are selected (if any)
-    QItemSelectionModel *select = _ui->animalTableView->selectionModel();
+    QItemSelectionModel *select = _animalWidget->getView()->selectionModel();
     QModelIndexList selectedRows = select->selectedRows();
 
     int lowestRow = _animalTable->rowCount()-1;
@@ -1281,8 +1359,8 @@ void MainWindow::on_deleteAnimalTypeButton_clicked()
 
         if(_animalTable->deleteRows(selectedRows) && _animalTable->rowCount()) {
             if(lowestRow >= 0 && lowestRow < _animalTable->rowCount()) {
-                _ui->animalTableView->selectRow(lowestRow);
-            } else _ui->animalTableView->selectRow(0);
+                _animalWidget->getView()->selectRow(lowestRow);
+            } else _animalWidget->getView()->selectRow(0);
         }
 
     } else {
@@ -1295,9 +1373,9 @@ void MainWindow::on_deleteAnimalTypeButton_clicked()
 void MainWindow::onAnimalSelectionChanged(const QModelIndex& selected, const QModelIndex&) {
     dbgPrintf("MainWindow::onAnimalSelectionChanged");
     dbgPush();
-    _ui->animalNutritionReqTableView->setModel(_animalNutritionReqTable);
+    _reqWidget->getView()->setModel(_animalNutritionReqTable);
     _animalNutritionReqTable->insertHeaderData();
-    _ui->animalNutritionReqTableView->setColumnHidden(AnimalNutritionReqTable::COL_ANIMAL, true);
+    _reqWidget->getView()->setColumnHidden(AnimalNutritionReqTable::COL_ANIMAL, true);
 
     if(selected.isValid()) {
 
@@ -1314,11 +1392,11 @@ void MainWindow::onAnimalSelectionChanged(const QModelIndex& selected, const QMo
 void MainWindow::onAnimalValueChanged(int row, int, QVariant, QVariant, int) {
     dbgPrintf("MainWindow::onAnimalValueChanged");
     dbgPush();
-    if(_ui->animalTableView->selectionModel()->hasSelection()) {
-        auto selectedList = _ui->animalTableView->selectionModel()->selectedRows();
+    if(_animalWidget->getView()->selectionModel()->hasSelection()) {
+        auto selectedList = _animalWidget->getView()->selectionModel()->selectedRows();
         for(auto& index : selectedList) {
             if(index.row() == row) {
-                _ui->animalTableView->selectRow(row);
+                _animalWidget->getView()->selectRow(row);
                 onAnimalSelectionChanged(index, QModelIndex());
                 break;
             }
@@ -1435,13 +1513,13 @@ void MainWindow::onMainTabChange(int index) {
     dbgPush();
     switch(index) {
     case MAIN_TAB_ANIMALS:
-        if(!_ui->animalTableView->selectionModel()->hasSelection() && _animalTable->rowCount()) {
-            _ui->animalTableView->selectRow(0);
+        if(!_animalWidget->getView()->selectionModel()->hasSelection() && _animalTable->rowCount()) {
+            _animalWidget->getView()->selectRow(0);
         }
         break;
     case MAIN_TAB_RECIPES:
-        if(!_ui->recipeTableView->selectionModel()->hasSelection() && _recipeTable->rowCount()) {
-            _ui->recipeTableView->selectRow(0);
+        if(!_recipeWidget->getView()->selectionModel()->hasSelection() && _recipeTable->rowCount()) {
+            _recipeWidget->getView()->selectRow(0);
         }
         break;
     case MAIN_TAB_CALC:
@@ -1453,6 +1531,7 @@ void MainWindow::onMainTabChange(int index) {
         _ui->matureWeightComboBox->populate();
         _ui->currentWeightComboBox->populate();
         _ui->adgComboBox->populate();
+        _updateCalculationTabWidgets();
         break;
     default: break;
 

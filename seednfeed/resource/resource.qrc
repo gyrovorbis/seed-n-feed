@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>feedIco.png</file>
         <file>defaults.db</file>
+        <file>add_icon.png</file>
+        <file>remove_icon.png</file>
     </qresource>
 </RCC>

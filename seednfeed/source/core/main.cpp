@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     a.setOrganizationName("A&G Enterprises");
     a.setOrganizationDomain("elysianshadows.com");
     a.setApplicationName("Seed ~N~ Feed");
-    a.setApplicationDisplayName("Seed ~N~ Feed");
+    //a.setApplicationDisplayName("Seed ~N~ Feed");
     a.setApplicationVersion(QString("v")+QString(VERSION_STRING));
     a.setWindowIcon(QIcon(":/feedIco.png"));
 

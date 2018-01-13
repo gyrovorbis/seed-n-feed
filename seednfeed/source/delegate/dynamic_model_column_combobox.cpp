@@ -7,15 +7,17 @@ DynamicModelColumnComboBox::DynamicModelColumnComboBox(QWidget *parent):
 {}
 
 void DynamicModelColumnComboBox::populate(void) {
-
+    QStringList list;
     QString previousText;
     Q_ASSERT(_srcColumn != -1 && _srcModel);
+
 
     if(!currentText().isNull() && !currentText().isEmpty()) {
         previousText = currentText();
     }
 
     //clear existing items
+    blockSignals(true);
     while(count() > 0) removeItem(0);
 
     _srcModel->protectedSelect();
@@ -25,9 +27,16 @@ void DynamicModelColumnComboBox::populate(void) {
     for(int r = 0; r < _srcModel->rowCount(); ++r) {
         auto idx = _srcModel->index(r, _srcColumn);
         Q_ASSERT(idx.isValid());
-        if(!_filterCb || (_filterCb && _filterCb(idx)))
-            addItem(idx.data().toString());
+        if(!_filterCb || (_filterCb && _filterCb(idx))) {
+            //addItem(idx.data().toString())
+            QString str = idx.data().toString();
+            if(!list.contains(str)) list << str;
+        }
     }
+
+    for(int i = 0; i < list.count(); ++i) addItem(list[i]);
+
+    blockSignals(false);
 
 
     if(!previousText.isNull() && !previousText.isEmpty()) setCurrentText(previousText);

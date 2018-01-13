@@ -6,13 +6,32 @@
 #include <climits>
 #include <QTextStream>
 #include <cfloat>
+#include <QDebug>
+#include "model/animal_nutrition_req_table.h"
+#include "model/ingredients_table.h"
 
 #include "model/sql_table.h"
 #include "core/utilities.h"
 #include "ui/mainwindow.h"
 
 SqlTableModel::SqlTableModel(QObject *parent, QSqlDatabase database):
-    QSqlRelationalTableModel(parent, database) {}
+    QSqlTableModel(parent, database)
+{
+#if 0
+    connect(this, &QSqlTableModel::dataChanged, [&](const QModelIndex&, const QModelIndex&) {
+        prefetchTableData();
+    });
+    connect(this, &QSqlTableModel::rowsInserted, [&](const QModelIndex&, int, int) {
+        prefetchTableData();
+    });
+    connect(this, &QSqlTableModel::rowsRemoved, [&](const QModelIndex&, int, int) {
+        prefetchTableData();
+    });
+    connect(this, &QSqlTableModel::layoutChanged, [&](void) {
+        prefetchTableData();
+    });
+#endif
+}
 
 
 bool SqlTableModel::protectedDbCommit(void) {
@@ -234,7 +253,8 @@ bool SqlTableModel::_normalRenameSqlColumn(QString oldName, QString newName) {
 }
 
 bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
-    QSqlQuery query;
+  //  pushFilter();
+    QSqlQuery query(MainWindow::getDb());
     QString sqlCmdBuff;
 
     MainWindow::dbgPrintf("SqlTableModel::_sqliteRenameSqlColumn(%s, %s)", oldName.isNull()? "NULL" : Q_CSTR(oldName), newName.isNull()? "NULL" : Q_CSTR(newName));
@@ -275,14 +295,15 @@ bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
     }
 
     sqlCmdBuff = QString(
-            "CREATE TEMPORARY TABLE t1_backup(%1);\n"
-            "INSERT INTO t1_backup SELECT %2 FROM %3;\n"
-            "DROP TABLE %4;\n"
-            "CREATE TABLE %5(%6);\n"
-            "INSERT INTO %7 SELECT %8 FROM t1_backup;\n"
-            "DROP TABLE t1_backup;").arg(
-                Q_CSTR(dstColInitStrings), Q_CSTR(srcColNameStrings), Q_CSTR(tableName()), Q_CSTR(tableName()),
-                Q_CSTR(tableName()), Q_CSTR(dstColInitStrings), Q_CSTR(tableName()), Q_CSTR(dstColNameStrings)
+            "CREATE TEMPORARY TABLE %1_backup(%2);\n"
+            "INSERT INTO %3_backup SELECT %4 FROM %5;\n"
+            "DROP TABLE %6;\n"
+            "CREATE TABLE %7(%8);\n"
+            "INSERT INTO %9 SELECT %10 FROM %11_backup;\n"
+            "DROP TABLE %12_backup;").arg(Q_CSTR(tableName()),
+                                          Q_CSTR(dstColInitStrings), Q_CSTR(tableName()), Q_CSTR(srcColNameStrings)).
+            arg(Q_CSTR(tableName()), Q_CSTR(tableName()),
+                Q_CSTR(tableName()), Q_CSTR(dstColInitStrings), Q_CSTR(tableName()), Q_CSTR(dstColNameStrings), Q_CSTR(tableName()), Q_CSTR(tableName())
             );    
 
     QStringList queryTextList = QString(sqlCmdBuff).split("\n");
@@ -296,21 +317,29 @@ bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
 
     Q_ASSERT(database().driver()->hasFeature(QSqlDriver::Transactions));
 
+    MainWindow::getInstance()->_animalNutritionReqTable->prefetchTableData();
+    MainWindow::getInstance()->_ingredientsTable->prefetchTableData();
+    while(canFetchMore()) fetchMore();
+
     bool queryFailed = false;
     database().transaction();
     for(int i = 0; i < queryTextList.size(); ++i) {
         if(!query.exec(queryTextList[i])) {
-            MainWindow::dbgPrintf("Query failed: ", Q_CSTR(query.lastError().text()));
+            qDebug() << query.lastError();
+            //MainWindow::dbgPrintf("Query error: ", Q_CSTR(query.lastError().text()));
+            //MainWindow::dbgPrintf("Database Error: %s", Q_CSTR(database().lastError().text()));
             queryFailed = true;
             break;
         }
+        query.next();
     }
+    query.finish();
 
     bool success;
     if(!queryFailed) {
         //if(submitAll()) {
         submitAll();
-            database().commit();
+           database().commit();
         //}
         forceReloadModel();
         success = true;
@@ -323,6 +352,9 @@ bool SqlTableModel::_sqliteRenameSqlColumn(QString oldName, QString newName) {
     }
 
     MainWindow::dbgPop();
+
+  //  popFilter();
+
     return success;
 }
 
@@ -633,8 +665,7 @@ void SqlTableModel::addColumnsFromRowsRelationship(int srcCol, SqlTableModel* mo
     //add/rename column
     connect(model, &SqlTableModel::cellDataChanged, [=](int r, int c, QVariant oldVariant, QVariant newVariant, int rol) {
         if(rol == role && c == srcCol) {
-            pushFilter();
-
+            //pushFilter();
             if(varIsGoodString(newVariant)) {
                 if(varIsGoodString(oldVariant)) renameSqlColumn(oldVariant.toString(), newVariant.toString());
                 else addSqlColumn(newVariant.toString(), type, defValue);
@@ -642,7 +673,7 @@ void SqlTableModel::addColumnsFromRowsRelationship(int srcCol, SqlTableModel* mo
             } else {
                 MainWindow::dbgPrintf("Table[%s] rename/add column from row of [%s]: new column/row string is invalid!", Q_CSTR(tableName()), Q_CSTR(model->tableName()));
             }
-            popFilter();
+           // popFilter();
         }
     });
 
@@ -681,4 +712,20 @@ void SqlTableModel::populateDynamicColumnEntries(void) {
 void SqlTableModel::addHeaderData(int col, Qt::Orientation orient, QString name, QString tooltip) {
     setHeaderData(col, orient, name, Qt::EditRole);
     setHeaderData(col, orient, tooltip, Qt::ToolTipRole);
+}
+
+int SqlTableModel::rowCount(const QModelIndex& parent) const {
+   // Q_ASSERT(!canFetchMore(parent));
+    return QSqlTableModel::rowCount(parent);
+}
+
+int SqlTableModel::columnCount(const QModelIndex& parent) const {
+    //Q_ASSERT(!canFetchMore(parent));
+    return QSqlTableModel::columnCount(parent);
+}
+
+void SqlTableModel::prefetchTableData(void) {
+  //  pushFilter();
+    while(canFetchMore()) fetchMore();
+  //  popFilter();
 }

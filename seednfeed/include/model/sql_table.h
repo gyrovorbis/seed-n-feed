@@ -4,42 +4,11 @@
 #include <QString>
 #include <QStack>
 #include <QSqlTableModel>
-#include <QSqlRelationalTableModel>
+#include <QSqlTableModel>
 
-#define SQL_TABLE_MODEL_MAX_QUERY_SIZE      1024
+#define SQL_TABLE_MODEL_MAX_QUERY_SIZE      1024*8
 
 class SqlTableModel;
-
-#if 0
-class DynamicColumnsSqlTableRowEntry {
-public:
-                DynamicColumnsTableEntry(void) = default;
-                DynamicColumnsTableEntry(unsigned nutrientCount);
-                DynamicColumnsTableEntry(DynamicColumnsTableEntry&& other);
-                ~DynamicColumnsTableEntry(void);
-
-    void        setDynamicColumnCount(int count);
-    int         getDynamicColumnCount(void) const;
-
-    bool        isDynamicColumnValid(int index) const;
-    auto        getDynamicColumnType(int index) const -> QVariant::Type;
-    QString     getDynamicColumnTypeName(int index) const;
-
-    void        setDynamicColumnVariant(int index, QVariant variant);
-    QVariant    getDynamicColumnVariant(int index) const;
-
-    template<typename T>
-    T           getDynamicColumnValue(int index);
-    template<typename T>
-    void        setDynamicColumnValue(int index, T&& value);
-
-protected:
-    void*       _memPtr         = nullptr;
-    QVariant*   _dynColVariants = nullptr;
-    int         _dynColCount    = 0;
-};
-#endif
-
 
 class SqlTableRowEntry {
 public:
@@ -79,7 +48,7 @@ private:
 };
 
 
-class SqlTableModel: public QSqlRelationalTableModel {
+class SqlTableModel: public QSqlTableModel {
     Q_OBJECT
 protected:
 
@@ -160,6 +129,8 @@ public:
     static bool     importCSV(QAbstractItemModel* model, QString filePath);
 
     virtual bool    setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    virtual int     rowCount(const QModelIndex& parent=QModelIndex()) const override;
+    virtual int     columnCount(const QModelIndex& parent=QModelIndex()) const override;
 
     bool            pushFilter(QString string=QString());
     bool            popFilter(void);
@@ -190,6 +161,8 @@ signals:
 
     void            cellDataChanged(int row, int col, QVariant oldValue, QVariant newValue, int role);
 
+public slots:
+    void            prefetchTableData(void);
 };
 
 
@@ -226,7 +199,7 @@ inline void SqlTableModel::_addColumnEntry(ColumnEntry entry) {
 
 inline void SqlTableModel::_removeColumnEntry(QString name) {
     int index = columnIndexFromName(name);
-    Q_ASSERT(index >= 0 && index < columnCount());
+    Q_ASSERT(index >= 0 && index < _colEntries.size());
     _colEntries.remove(index);
     _colEntryNameToIndexHash.clear();
     for(int c = 0; c < _colEntries.size(); ++c) {

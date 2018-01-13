@@ -22,6 +22,7 @@ namespace Ui {
 }
 
 class ErrorWarningDialog;
+class SqlTableManagerWidget;
 
 class IngredientsTable;
 class RationTable;
@@ -60,10 +61,19 @@ public:
     static void         dbgPop(int depth=1);
 
     static auto         _createItem(const char* fmt, ...) -> QTableWidgetItem*;
+    static QSqlDatabase getDb(void);
+    static MainWindow*  getInstance(void);
 
-private:
+public:
+    static MainWindow*       _instance;
     Ui::MainWindow*          _ui;
-    QSqlDatabase             _db;
+    SqlTableManagerWidget*   _recipeWidget              = nullptr;
+    SqlTableManagerWidget*   _rationWidget              = nullptr;
+    SqlTableManagerWidget*   _animalWidget              = nullptr;
+    SqlTableManagerWidget*   _reqWidget                 = nullptr;
+    SqlTableManagerWidget*   _ingWidget                 = nullptr;
+    SqlTableManagerWidget*   _nutWidget                 = nullptr;
+    static QSqlDatabase      _db;
     IngredientsTable*        _ingredientsTable          = nullptr;
     AnimalNutritionReqTable* _animalNutritionReqTable   = nullptr;
     RationTable*             _rationTable               = nullptr;
@@ -100,6 +110,7 @@ private:
     int                 _getCalcNutritionReqsRow(void) const;
 
     void                _updateCalculationTabWidgets(void);
+    void                _updateCalculationSellWeight(void);
 
     void                _parseAnimalRawData(void);
     void                _parseIngredientsRowData(void);
@@ -138,8 +149,8 @@ private slots:
     void                on_actionUse_Default_triggered();
     void                on_actionAbout_triggered();
 
-    void                on_addAnimalTypeButton_clicked();
-    void                on_deleteAnimalTypeButton_clicked();
+    void                on_addAnimalTypeButton_clicked(bool);
+    void                on_deleteAnimalTypeButton_clicked(bool);
     void                onAnimalSelectionChanged(const QModelIndex& selected, const QModelIndex& deselected);
     void                onAnimalValueChanged(int row, int col, QVariant oldValue, QVariant newValue, int role);
 };
