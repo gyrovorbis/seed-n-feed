@@ -23,7 +23,7 @@ $pass = $creds["pass"]
 
 
 $client = JenkinsApi::Client.new(
-		 :server_url => 'http://freecams.dontexist.org:8081', #The fuck does it need port for!?
+		 :server_url => '10.162.37.116:8081', #The fuck does it need port for!?
 		 :server_port => 8081,
 		 :timeout => 500,
 		 :http_open_timeout => 100,
