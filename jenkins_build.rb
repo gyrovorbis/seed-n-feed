@@ -376,9 +376,10 @@ def triggerNextJobLambda(job, success=true)
 end
 
 buildWin 	= JenkinsJob.new("SeedNFeed_Win_x86")
-
+buildMac	= JenkinsJob.new("SeedNFeed_MacOS")
 
 $mgr.addJob(buildWin)
+$mgr.addJob(buildMac)
 
 while $mgr.update == false do
 	sleep(1.0) 
