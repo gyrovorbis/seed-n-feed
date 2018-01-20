@@ -16,11 +16,13 @@ build:
   #  - CRUMB=$(curl --user $USER:$APITOKEN $SERVER/crumbIssuer/api/xml?xpath=concat\(//crumbRequestField,%22:%22,//crumb\))
   #  - curl --user $USER:$APITOKEN -H "$CRUMB" -d "token=TEST" $SERVER/job/ESAssets_Debian_x64/build
   #  - curl --user $USER:$APITOKEN -H "$CRUMB" -d "token=TEST" $SERVER/job/ESAssets_MacOS/build
-  script: 
+  script:
+    - /usr/bin/knife upload --chef-repo-path . environments 
     - echo $GITLAB_USER_EMAIL
     - ruby jenkins_build.rb $GITLAB_USER_EMAIL
 # run tests using the binary built before
 #test:
 #  stage: test
 #  script:
+/usr/bin/
 #    - ./runmytests.sh
