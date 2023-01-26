@@ -5,8 +5,6 @@
 
 #define RECIPE_NAME_SIZE    50
 
-class QStringList;
-
 struct Recipe {
     char name[RECIPE_NAME_SIZE];
 

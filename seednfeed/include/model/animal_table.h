@@ -6,8 +6,6 @@
 #define ANIMAL_TABLE_NAME   "Animals"
 #define ANIMAL_NAME_SIZE    200
 
-class QStringList;
-
 struct Animal {
     char name[ANIMAL_NAME_SIZE];
 

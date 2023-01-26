@@ -123,7 +123,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     auto* layout = new QHBoxLayout();
     layout->setSpacing(0);
-    layout->setMargin(0);
     QSplitter* splitter = new QSplitter(Qt::Vertical);
     splitter->addWidget(_recipeWidget);
     splitter->addWidget(_rationWidget);
@@ -132,7 +131,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     layout = new QHBoxLayout();
     layout->setSpacing(0);
-    layout->setMargin(0);
     splitter = new QSplitter(Qt::Vertical);
     splitter->addWidget(_animalWidget);
     splitter->addWidget(_reqWidget);
@@ -141,13 +139,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     layout = new QHBoxLayout();
     layout->setSpacing(0);
-    layout->setMargin(0);
     layout->addWidget(_ingWidget);
     _ui->ingredientsTab->setLayout(layout);
 
     layout = new QHBoxLayout();
     layout->setSpacing(0);
-    layout->setMargin(0);
     layout->addWidget(_nutWidget);
     _ui->nutrientsTab->setLayout(layout);
 

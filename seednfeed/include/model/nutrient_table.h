@@ -5,8 +5,6 @@
 
 #define NUTRIENT_NAME_SIZE    50
 
-class QStringList;
-
 class IngredientsTable;
 
 struct Nutrient {

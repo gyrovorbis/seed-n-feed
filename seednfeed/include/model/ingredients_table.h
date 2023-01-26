@@ -6,7 +6,6 @@
 
 #define INGREDIENT_NAME_SIZE    50
 
-class QStringList;
 class NutrientTable;
 
 struct Ingredient { //: public DynamicColumnsTableEntry {
